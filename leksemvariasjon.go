@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+    "github.com/quaepoena/leksemvariasjon/dhlabs"
 )
 
 type Word struct {
