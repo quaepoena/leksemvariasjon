@@ -193,15 +193,15 @@ func main() {
         os.Exit(1)
     }
 
-	if config == "" {
-		fmt.Fprintln(os.Stderr, "Flag '-config' must be set when not using '-resume'.")
-		os.Exit(1)
-	}
+    if config == "" {
+        fmt.Fprintln(os.Stderr, "Flag '-config' must be set when not using '-resume'.")
+        os.Exit(1)
+    }
 
-	if doctype == "" {
-		fmt.Fprintln(os.Stderr, "Flag '-doctype' must be set when not using '-resume'.")
-		os.Exit(1)
-	}
+    if doctype == "" {
+        fmt.Fprintln(os.Stderr, "Flag '-doctype' must be set when not using '-resume'.")
+        os.Exit(1)
+    }
 
     if resume {
         // For resumptive runs we read the config info back from disk and set
