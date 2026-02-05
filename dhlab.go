@@ -13,16 +13,24 @@ type Corpus struct {
     Year    map[string]int
 }
 
-func CorpusRequest(a *Args, c *Conf) ([]byte, error) {
-    type CorpusRequest struct {
-        Doctype string `json:"doctype"`
-        FromYear int `json:"from_year"`
-        ToYear int `json:"to_year"`
-        Fulltext string `json:"fulltext"`
-        Lang string `json:"lang"`
-        Limit int `json:"limit"`
-    }
+type CorpusRequest struct {
+    Doctype string `json:"doctype"`
+    FromYear int `json:"from_year"`
+    ToYear int `json:"to_year"`
+    Fulltext string `json:"fulltext"`
+    Lang string `json:"lang"`
+    Limit int `json:"limit"`
+}
 
+type ConcRequest struct {
+    DHLabIDs []int `json:"dhlabids"`
+    Limit int `json:"limit"`
+    Query string `json:"query"`
+    Window int `json:"window"`
+    HTMLFormatting bool `json:"html_formatting"`
+}
+
+func BuildCorpus(a *lv.Args, c *lv.Conf) ([]byte, error) {
     var req CorpusRequest
     var words []string
     var reqData []byte
@@ -61,15 +69,7 @@ func PopulateCorpusRecord(s string, c *Corpus) []string {
     return fields
 }
 
-func ConcRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
-    type ConcRequest struct {
-        DHLabIDs []int `json:"dhlabids"`
-        Limit int `json:"limit"`
-        Query string `json:"query"`
-        Window int `json:"window"`
-        HTMLFormatting bool `json:"html_formatting"`
-    }
-
+func BuildConc(a *lv.Args, c *lv.Conf, ids []int) ([]byte, error) {
     var req ConcRequest
     var words []string
     var reqData []byte
