@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-    "github.com/quaepoena/leksemvariasjon/dhlabs"
+    "github.com/quaepoena/leksemvariasjon/dhlab"
 )
 
 type Word struct {
