@@ -15,26 +15,6 @@ import (
     "github.com/quaepoena/leksemvariasjon/dhlab"
 )
 
-type Word struct {
-    Form, Value string
-    Morphology []string
-}
-
-type Lemma struct {
-    Lemma string
-    Words []Word
-}
-
-type Conf struct {
-    Attribute, Language string
-    Lemmas []Lemma
-}
-
-type Args struct {
-    Config, Directory, Doctype string
-    From, To int
-}
-
 // Flags.
 var (
     config string
