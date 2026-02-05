@@ -31,10 +31,8 @@ type Conf struct {
 }
 
 type Args struct {
-    Config, Directory string
-    Doctype string
-    From int
-    To int
+    Config, Directory, Doctype string
+    From, To int
 }
 
 // Flags.
