@@ -1,3 +1,5 @@
+package dhlab
+
 const (
     DHLabAPI = "https://api.nb.no/dhlab/"
 )
