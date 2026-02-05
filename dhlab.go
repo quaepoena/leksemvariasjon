@@ -50,7 +50,7 @@ func BuildCorpus(a *lv.Args, c *lv.Conf) ([]byte, error) {
 
     reqData, err := json.Marshal(req)
     if err != nil {
-        return nil, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
+        return []byte, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
     }
 
     return reqData, nil
