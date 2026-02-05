@@ -183,23 +183,14 @@ func main() {
         os.Exit(1)
     }
 
-    if from == 0 || to == 0 {
-        fmt.Fprintln(os.Stderr, "Flags '-from' and '-to' must be set.")
+    if resume == false && (
+        config == "" || doctype == "" || from == 0 || to == 0) {
+        fmt.Fprintln(os.Stderr, "Flags '-config', '-doctype', '-from', and '-to' must be set when not using '-resume'.")
         os.Exit(1)
     }
 
     if from < to {
         fmt.Fprintln(os.Stderr, "Flag '-to' must be greater than or equal to '-from'.")
-        os.Exit(1)
-    }
-
-    if config == "" {
-        fmt.Fprintln(os.Stderr, "Flag '-config' must be set when not using '-resume'.")
-        os.Exit(1)
-    }
-
-    if doctype == "" {
-        fmt.Fprintln(os.Stderr, "Flag '-doctype' must be set when not using '-resume'.")
         os.Exit(1)
     }
 
