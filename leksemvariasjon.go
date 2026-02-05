@@ -13,6 +13,7 @@ import (
 	"time"
 
     "github.com/quaepoena/leksemvariasjon/dhlab"
+    "github.com/quaepoena/leksemvariasjon/types"
 )
 
 // Flags.
@@ -34,7 +35,7 @@ func init() {
     flag.IntVar(&to, "to", 0, "The end year for the search (inclusive).")
 }
 
-func readArgs(path string, a *Args) error {
+func readArgs(path string, a *types.Args) error {
     var argFile *os.File
     var dec *gob.Decoder
 
@@ -95,7 +96,7 @@ func copyConfig(dir string, config string) error {
     return nil
 }
 
-func writeArgs(dir string, a *Args) error {
+func writeArgs(dir string, a *types.Args) error {
     var argFile *os.File
     var enc *gob.Encoder
     var path string
@@ -116,7 +117,7 @@ func writeArgs(dir string, a *Args) error {
     return nil
 }
 
-func loadConf(path string, conf *Conf) error {
+func loadConf(path string, conf *types.Conf) error {
     var config_data []byte
 
     config_data, err := os.ReadFile(path)
@@ -144,10 +145,10 @@ func createDirs(path string, dirs []string) error {
 }
 
 func main() {
-    var args Args
+    var args types.Args
     var argPath string
-	var conf Conf
 	var processDirectories = []string{"incoming", "working", "outgoing", "results"}
+    var conf types.Conf
 
     flag.Parse()
 
@@ -207,7 +208,7 @@ func main() {
         config = filepath.Base(config)
 
         // "-directory" is a required flag, so it doesn't need to be saved.
-        args = Args{Config: config, Doctype: doctype, From: from, To: to}
+        args = types.Args{Config: config, Doctype: doctype, From: from, To: to}
         err = writeArgs(directory, &args)
         if err != nil {
             fmt.Fprintln(os.Stderr, err)

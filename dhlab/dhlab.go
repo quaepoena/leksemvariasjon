@@ -1,6 +1,12 @@
 package dhlab
 
 import (
+    "encoding/json"
+    "errors"
+    "fmt"
+    "strconv"
+    "strings"
+
     "github.com/quaepoena/leksemvariasjon/types"
 )
 
@@ -9,7 +15,7 @@ const (
 )
 
 func BuildCorpus(a *types.Args, c *types.Conf) ([]byte, error) {
-    var req CorpusRequest
+    var req types.CorpusRequest
     var words []string
     var reqData []byte
 
@@ -28,13 +34,13 @@ func BuildCorpus(a *types.Args, c *types.Conf) ([]byte, error) {
 
     reqData, err := json.Marshal(req)
     if err != nil {
-        return []byte, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
+        return []byte{}, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
     }
 
     return reqData, nil
 }
 
-func PopulateCorpusRecord(s string, c *Corpus) []string {
+func PopulateCorpusRecord(s string, c *types.Corpus) []string {
     var fields []string
 
     fields = append(fields, strconv.Itoa(c.DHLabID[s]))
@@ -48,7 +54,7 @@ func PopulateCorpusRecord(s string, c *Corpus) []string {
 }
 
 func BuildConc(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
-    var req ConcRequest
+    var req types.ConcRequest
     var words []string
     var reqData []byte
 
