@@ -168,6 +168,16 @@ func writeCorpusCSV(records [][]string, header []string, c *types.Corpus, dir st
     return nil
 }
 
+func getDHLabIDs(c *types.Corpus) []int {
+    var ids = make([]int, len(c.DHLabID))
+
+    for _, v := range c.DHLabID {
+        ids = append(ids, v)
+    }
+
+    return ids
+}
+
 func main() {
     var args types.Args
     var argPath string
@@ -273,4 +283,6 @@ func main() {
         fmt.Fprintf(os.Stderr, "Error in writeCorpusCSV(): %v", err)
         os.Exit(1)
     }
+
+    dhlabIDs := getDHLabIDs(&corpus)
 }
