@@ -40,8 +40,8 @@ type CorpusRequest struct {
 
 type ConcRequest struct {
     DHLabIDs []int `json:"dhlabids"`
+    HTMLFormatting bool `json:"html_formatting"`
     Limit int `json:"limit"`
     Query string `json:"query"`
     Window int `json:"window"`
-    HTMLFormatting bool `json:"html_formatting"`
 }
