@@ -218,7 +218,7 @@ func main() {
         argPath = filepath.Join(directory, "args.gob")
         err := readArgs(argPath, &args)
         if err != nil {
-            fmt.Fprintln(os.Stderr, "Error on readArgs().", err)
+            fmt.Fprintf(os.Stderr, "Error on readArgs():\n%v\n", err)
             os.Exit(1)
         }
 
@@ -234,13 +234,13 @@ func main() {
         // The '-directory' flag is changed to the new, unique directory.
         directory, err := mkUniqueDir(directory, config)
         if err != nil {
-            fmt.Fprintln(os.Stderr, "Error on mkUniqueDir().", err)
+            fmt.Fprintf(os.Stderr, "Error on mkUniqueDir():\n%v\n", err)
             os.Exit(1)
         }
 
         err = copyConfig(directory, config)
         if err != nil {
-            fmt.Fprintln(os.Stderr, "Error on copyConfig().", err)
+            fmt.Fprintf(os.Stderr, "Error on copyConfig():\n%v\n", err)
             os.Exit(1)
         }
 
@@ -251,39 +251,39 @@ func main() {
         args = types.Args{Config: config, Doctype: doctype, From: from, To: to}
         err = writeArgs(directory, &args)
         if err != nil {
-            fmt.Fprintln(os.Stderr, err)
+            fmt.Fprintf(os.Stderr, "Error on writeArgs():\n%v\n", err)
             os.Exit(1)
         }
     }
 
     err := createDirs(directory, processDirectories)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in createDirs(): %v", err)
+        fmt.Fprintf(os.Stderr, "Error in createDirs():\n%v\n", err)
         os.Exit(1)
     }
 
     err = loadConf(filepath.Join(directory, config), &conf)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in loadConf(): %v\n", err)
+        fmt.Fprintf(os.Stderr, "Error in loadConf():\n%v\n", err)
         os.Exit(1)
     }
 
     req, err := dhlab.BuildCorpusRequest(&args, &conf)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in dhlab.CorpusRequest(): %v", err)
+        fmt.Fprintf(os.Stderr, "Error in dhlab.CorpusRequest():\n%v\n", err)
         os.Exit(1)
     }
 
     err = dhlab.BuildCorpus(req, &corpus)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildCorpus(): %v", err)
+        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildCorpus():\n%v\n", err)
         os.Exit(1)
     }
 
     header = []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
     err = writeCorpusCSV(records, header, &corpus, directory)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in writeCorpusCSV(): %v", err)
+        fmt.Fprintf(os.Stderr, "Error in writeCorpusCSV():\n%v\n", err)
         os.Exit(1)
     }
 
