@@ -103,27 +103,24 @@ func BuildConcRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
     return b, nil
 }
 
-func BuildConc(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
-    var req types.ConcRequest
-    var words []string
-    var reqData []byte
+func BuildConc(req []byte, c *types.Concordance) error {
+    var uri = DHLabAPI + "conc"
 
-    for _, lemma := range c.Lemmas {
-        for _, word := range lemma.Words {
-            words = append(words, word.Form)
-        }
-    }
-
-    req.DHLabIDs = ids
-    req.Limit = 100
-    req.Query = strings.Join(words, " OR ")
-    req.Window = 25
-    req.HTMLFormatting = false
-
-    reqData, err := json.Marshal(req)
+    resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
     if err != nil {
-        return nil, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
+        return errors.New(fmt.Sprintf("Error in http.Post(): %v\n", err))
+    }
+    defer resp.Body.Close()
+
+    b, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
     }
 
-    return reqData, nil
+    err = json.Unmarshal(b, &c)
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+    }
+
+    return nil
 }

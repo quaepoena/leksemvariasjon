@@ -184,6 +184,7 @@ func main() {
     var conf types.Conf
     var err error
     var header []string
+    var conc types.Concordance
     var corpus types.Corpus
     var records [][]string
     var processDirectories = []string{"incoming", "working", "outgoing", "results"}
@@ -289,4 +290,20 @@ func main() {
     }
 
     dhlabIDs := getDHLabIDs(&corpus)
+    req, err = dhlab.BuildConcRequest(&args, &conf, dhlabIDs)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildConcRequest():\n%v\n", err)
+        os.Exit(1)
+    }
+
+    err = dhlab.BuildConc(req, &conc)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildConc():\n%v\n", err)
+        os.Exit(1)
+    }
+
+    fmt.Printf("%+v\n", conc)
+
+    // concPath = filepath.Join(directory, "outgoing", "concordance.csv")
+    // err = dhlab.WriteConcordance(corpusPath, concPath, &args, &conf)
 }

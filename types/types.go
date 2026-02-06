@@ -20,6 +20,12 @@ type Args struct {
     From, To int
 }
 
+type Concordance struct {
+    DocID map[string]int
+    URN map[string]string
+    Conc map[string]string
+}
+
 type Corpus struct {
     DHLabID map[string]int
     Doctype map[string]string
