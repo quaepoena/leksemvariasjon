@@ -251,7 +251,7 @@ func main() {
 
     err = loadConf(filepath.Join(directory, config), &conf)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in loadConf(): %+v\n", err)
+        fmt.Fprintf(os.Stderr, "Error in loadConf(): %v\n", err)
         os.Exit(1)
     }
 
