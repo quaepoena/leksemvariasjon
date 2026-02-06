@@ -1,16 +1,17 @@
 package main
 
 import (
-	"encoding/gob"
-	"encoding/json"
-	"errors"
+    "encoding/csv"
+    "encoding/gob"
+    "encoding/json"
+    "errors"
     "flag"
     "fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
+    "io"
+    "os"
+    "path/filepath"
+    "strings"
+    "time"
 
     "github.com/quaepoena/leksemvariasjon/dhlab"
     "github.com/quaepoena/leksemvariasjon/types"
@@ -144,11 +145,37 @@ func createDirs(path string, dirs []string) error {
     return nil
 }
 
+func writeCorpusCSV(records [][]string, fields []string, c *types.Corpus, dir string) error {
+    records = append(records, fields)
+    for key, _ := range c.DHLabID {
+        records = append(records, dhlab.PopulateCorpusRecord(key, c))
+    }
+
+    path := filepath.Join(dir, "outgoing", "corpus.csv")
+    f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
+    }
+    defer f.Close()
+
+    w := csv.NewWriter(f)
+    err = w.WriteAll(records)
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+    }
+    defer f.Close()
+
+    return nil
+}
+
 func main() {
     var args types.Args
     var argPath string
-	var processDirectories = []string{"incoming", "working", "outgoing", "results"}
     var conf types.Conf
+    var corpusFields []string
+    var corpus types.Corpus
+    var records [][]string
+    var processDirectories = []string{"incoming", "working", "outgoing", "results"}
 
     flag.Parse()
 
@@ -214,17 +241,36 @@ func main() {
             fmt.Fprintln(os.Stderr, err)
             os.Exit(1)
         }
+    }
 
-		err = createDirs(directory, processDirectories)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in createDirs(): %v", err)
-			os.Exit(1)
-		}
+    err := createDirs(directory, processDirectories)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in createDirs(): %v", err)
+        os.Exit(1)
+    }
 
-		err = loadConf(filepath.Join(directory, config), &conf)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in loadConf(): %+v\n", err)
-			os.Exit(1)
-		}
+    err = loadConf(filepath.Join(directory, config), &conf)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in loadConf(): %+v\n", err)
+        os.Exit(1)
+    }
+
+    req, err := dhlab.BuildCorpusRequest(&args, &conf)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in dhlab.CorpusRequest(): %v", err)
+        os.Exit(1)
+    }
+
+    err = dhlab.BuildCorpus(req, &corpus)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildCorpus(): %v", err)
+        os.Exit(1)
+    }
+
+    corpusFields = []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
+    err = writeCorpusCSV(records, corpusFields, &corpus, directory)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error in writeCorpusCSV(): %v", err)
+        os.Exit(1)
     }
 }

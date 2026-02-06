@@ -1,9 +1,12 @@
 package dhlab
 
 import (
+    "bytes"
     "encoding/json"
     "errors"
     "fmt"
+    "io"
+    "net/http"
     "strconv"
     "strings"
 
@@ -14,10 +17,10 @@ const (
     DHLabAPI = "https://api.nb.no/dhlab/"
 )
 
-func BuildCorpus(a *types.Args, c *types.Conf) ([]byte, error) {
+func BuildCorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
     var req types.CorpusRequest
     var words []string
-    var reqData []byte
+    var b []byte
 
     for _, lemma := range c.Lemmas {
         for _, word := range lemma.Words {
@@ -32,12 +35,34 @@ func BuildCorpus(a *types.Args, c *types.Conf) ([]byte, error) {
     req.Fulltext = strings.Join(words, " OR ")
     req.Lang = c.Language
 
-    reqData, err := json.Marshal(req)
+    b, err := json.Marshal(req)
     if err != nil {
         return []byte{}, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
     }
 
-    return reqData, nil
+    return b, nil
+}
+
+func BuildCorpus(req []byte, c *types.Corpus) error {
+    var uri = DHLabAPI + "build_corpus"
+
+    resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in http.Post(): %v\n", err))
+    }
+    defer resp.Body.Close()
+
+    b, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
+    }
+
+    err = json.Unmarshal(b, &c)
+    if err != nil {
+        return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+    }
+
+    return nil
 }
 
 func PopulateCorpusRecord(s string, c *types.Corpus) []string {
