@@ -182,6 +182,7 @@ func main() {
     var args types.Args
     var argPath string
     var conf types.Conf
+    var err error
     var header []string
     var corpus types.Corpus
     var records [][]string
@@ -216,7 +217,7 @@ func main() {
         // For resumptive runs we read the arguments back from disk and set
         // the variables accordingly.
         argPath = filepath.Join(directory, "args.gob")
-        err := readArgs(argPath, &args)
+        err = readArgs(argPath, &args)
         if err != nil {
             fmt.Fprintf(os.Stderr, "Error on readArgs():\n%v\n", err)
             os.Exit(1)
@@ -232,7 +233,7 @@ func main() {
         // flag values appropriately.
 
         // The '-directory' flag is changed to the new, unique directory.
-        directory, err := mkUniqueDir(directory, config)
+        directory, err = mkUniqueDir(directory, config)
         if err != nil {
             fmt.Fprintf(os.Stderr, "Error on mkUniqueDir():\n%v\n", err)
             os.Exit(1)
@@ -256,7 +257,7 @@ func main() {
         }
     }
 
-    err := createDirs(directory, processDirectories)
+    err = createDirs(directory, processDirectories)
     if err != nil {
         fmt.Fprintf(os.Stderr, "Error in createDirs():\n%v\n", err)
         os.Exit(1)
