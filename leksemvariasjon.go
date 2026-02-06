@@ -213,7 +213,7 @@ func main() {
     }
 
     if resume {
-        // For resumptive runs we read the config info back from disk and set
+        // For resumptive runs we read the arguments back from disk and set
         // the variables accordingly.
         argPath = filepath.Join(directory, "args.gob")
         err := readArgs(argPath, &args)
