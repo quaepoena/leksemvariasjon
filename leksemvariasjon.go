@@ -169,7 +169,7 @@ func writeCorpusCSV(records [][]string, header []string, c *types.Corpus, dir st
 }
 
 func getDHLabIDs(c *types.Corpus) []int {
-    var ids = make([]int, len(c.DHLabID))
+    var ids []int
 
     for _, v := range c.DHLabID {
         ids = append(ids, v)
