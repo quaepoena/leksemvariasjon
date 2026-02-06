@@ -78,6 +78,31 @@ func PopulateCorpusRecord(s string, c *types.Corpus) []string {
     return fields
 }
 
+func BuildConcRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
+    var req types.ConcRequest
+    var words []string
+    var b []byte
+
+    for _, lemma := range c.Lemmas {
+        for _, word := range lemma.Words {
+            words = append(words, word.Form)
+        }
+    }
+
+    req.DHLabIDs = ids
+    req.HTMLFormatting = false
+    req.Limit = 10
+    req.Query = strings.Join(words, " OR ")
+    req.Window = 25
+
+    b, err := json.Marshal(req)
+    if err != nil {
+        return []byte{}, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
+    }
+
+    return b, nil
+}
+
 func BuildConc(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
     var req types.ConcRequest
     var words []string
