@@ -218,7 +218,8 @@ func main() {
         argPath = filepath.Join(directory, "args.gob")
         err := readArgs(argPath, &args)
         if err != nil {
-            panic(err)
+            fmt.Fprintln(os.Stderr, "Error on readArgs().", err)
+            os.Exit(1)
         }
 
         config = args.Config
@@ -233,12 +234,14 @@ func main() {
         // The '-directory' flag is changed to the new, unique directory.
         directory, err := mkUniqueDir(directory, config)
         if err != nil {
-            panic(err)
+            fmt.Fprintln(os.Stderr, "Error on mkUniqueDir().", err)
+            os.Exit(1)
         }
 
         err = copyConfig(directory, config)
         if err != nil {
-            panic(err)
+            fmt.Fprintln(os.Stderr, "Error on copyConfig().", err)
+            os.Exit(1)
         }
 
         // We can now dispense with the original path to the config file.
