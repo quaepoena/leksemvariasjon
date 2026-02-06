@@ -145,8 +145,8 @@ func createDirs(path string, dirs []string) error {
     return nil
 }
 
-func writeCorpusCSV(records [][]string, fields []string, c *types.Corpus, dir string) error {
-    records = append(records, fields)
+func writeCorpusCSV(records [][]string, header []string, c *types.Corpus, dir string) error {
+    records = append(records, header)
     for key, _ := range c.DHLabID {
         records = append(records, dhlab.PopulateCorpusRecord(key, c))
     }
@@ -172,7 +172,7 @@ func main() {
     var args types.Args
     var argPath string
     var conf types.Conf
-    var corpusFields []string
+    var header []string
     var corpus types.Corpus
     var records [][]string
     var processDirectories = []string{"incoming", "working", "outgoing", "results"}
@@ -267,8 +267,8 @@ func main() {
         os.Exit(1)
     }
 
-    corpusFields = []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
-    err = writeCorpusCSV(records, corpusFields, &corpus, directory)
+    header = []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
+    err = writeCorpusCSV(records, header, &corpus, directory)
     if err != nil {
         fmt.Fprintf(os.Stderr, "Error in writeCorpusCSV(): %v", err)
         os.Exit(1)
