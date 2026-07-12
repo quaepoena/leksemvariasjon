@@ -1,3 +1,5 @@
+// Package dhlab interacts with the Norwegian National Library's DHLAB API.
+// https://api.nb.no/dhlab
 package dhlab
 
 import (
