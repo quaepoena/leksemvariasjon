@@ -270,15 +270,15 @@ func main() {
         os.Exit(1)
     }
 
-    req, err := dhlab.BuildCorpusRequest(&args, &conf)
+    req, err := dhlab.CorpusRequest(&args, &conf)
     if err != nil {
         fmt.Fprintf(os.Stderr, "Error in dhlab.CorpusRequest():\n%v\n", err)
         os.Exit(1)
     }
 
-    err = dhlab.BuildCorpus(req, &corpus)
+    err = dhlab.Corpus(req, &corpus)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildCorpus():\n%v\n", err)
+        fmt.Fprintf(os.Stderr, "Error in dhlab.Corpus():\n%v\n", err)
         os.Exit(1)
     }
 
@@ -290,15 +290,15 @@ func main() {
     }
 
     dhlabIDs := getDHLabIDs(&corpus)
-    req, err = dhlab.BuildConcRequest(&args, &conf, dhlabIDs)
+    req, err = dhlab.ConcordanceRequest(&args, &conf, dhlabIDs)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildConcRequest():\n%v\n", err)
+        fmt.Fprintf(os.Stderr, "Error in dhlab.ConcordanceRequest():\n%v\n", err)
         os.Exit(1)
     }
 
-    err = dhlab.BuildConc(req, &conc)
+    err = dhlab.Concordance(req, &conc)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error in dhlab.BuildConc():\n%v\n", err)
+        fmt.Fprintf(os.Stderr, "Error in dhlab.Concordance():\n%v\n", err)
         os.Exit(1)
     }
 

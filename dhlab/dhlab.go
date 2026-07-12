@@ -19,7 +19,7 @@ const (
     DHLabAPI = "https://api.nb.no/dhlab/"
 )
 
-func BuildCorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
+func CorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
     var req types.CorpusRequest
     var words []string
     var b []byte
@@ -45,7 +45,7 @@ func BuildCorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
     return b, nil
 }
 
-func BuildCorpus(req []byte, c *types.Corpus) error {
+func Corpus(req []byte, c *types.Corpus) error {
     var uri = DHLabAPI + "build_corpus"
 
     resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -80,8 +80,8 @@ func PopulateCorpusRecord(s string, c *types.Corpus) []string {
     return fields
 }
 
-func BuildConcRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
-    var req types.ConcRequest
+func ConcordanceRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
+    var req types.ConcordanceRequest
     var words []string
     var b []byte
 
@@ -105,7 +105,7 @@ func BuildConcRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
     return b, nil
 }
 
-func BuildConc(req []byte, c *types.Concordance) error {
+func Concordance(req []byte, c *types.Concordance) error {
     var uri = DHLabAPI + "conc"
 
     resp, err := http.Post(uri, "application/json", bytes.NewReader(req))

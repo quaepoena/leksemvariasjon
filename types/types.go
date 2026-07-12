@@ -44,7 +44,7 @@ type CorpusRequest struct {
     Limit int `json:"limit"`
 }
 
-type ConcRequest struct {
+type ConcordanceRequest struct {
     DHLabIDs []int `json:"dhlabids"`
     HTMLFormatting bool `json:"html_formatting"`
     Limit int `json:"limit"`
