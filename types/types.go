@@ -1,74 +1,73 @@
 package types
 
 type WorkflowStage interface {
-    Complete() bool
-    Run() error
-    WriteResult (int, error)
+	Complete() bool
+	Run() error
+	WriteResult(int, error)
 }
 
 func (c *Concordance) Complete() bool {
-    f = os.Open(c.Output)
-    return true
+	f = os.Open(c.Output)
+	return true
 }
 
 func (c *Concordance) Run() error {
-    return nil
+	return nil
 }
 
-func (c *Concordance) WriteResult (int, error) {
-    return 0, nil
+func (c *Concordance) WriteResult(int, error) {
+	return 0, nil
 }
 
 type Word struct {
-    Form, Value string
-    Morphology []string
+	Form, Value string
+	Morphology  []string
 }
 
 type Lemma struct {
-    Lemma string
-    Words []Word
+	Lemma string
+	Words []Word
 }
 
 type Conf struct {
-    Attribute, Language string
-    Lemmas []Lemma
+	Attribute, Language string
+	Lemmas              []Lemma
 }
 
 type Args struct {
-    Config, Doctype string
-    From, To int
 	Config, Directory, Doctype string
+	From, To                   int
 }
 
 type Concordance struct {
-    DocID map[string]int
-    URN map[string]string
-    Conc map[string]string
-    Output string
+	DocID  map[string]int
+	URN    map[string]string
+	Conc   map[string]string
+	Output string
 }
 
 type Corpus struct {
-    DHLabID map[string]int
-    Doctype map[string]string
-    Langs   map[string]string
-    Title   map[string]string
-    URN     map[string]string
-    Year    map[string]int
+	DHLabID map[string]int
+	Doctype map[string]string
+	Langs   map[string]string
+	Title   map[string]string
+	URN     map[string]string
+	Year    map[string]int
 }
 
 type CorpusRequest struct {
-    Doctype string `json:"doctype"`
-    FromYear int `json:"from_year"`
-    ToYear int `json:"to_year"`
-    Fulltext string `json:"fulltext"`
-    Lang string `json:"lang"`
-    Limit int `json:"limit"`
+	Doctype  string `json:"doctype"`
+	FromYear int    `json:"from_year"`
+	ToYear   int    `json:"to_year"`
+	Fulltext string `json:"fulltext"`
+	Lang     string `json:"lang"`
+	Limit    int    `json:"limit"`
 }
 
 type ConcordanceRequest struct {
-    DHLabIDs []int `json:"dhlabids"`
-    HTMLFormatting bool `json:"html_formatting"`
-    Limit int `json:"limit"`
-    Query string `json:"query"`
-    Window int `json:"window"`
+	DHLabIDs       []int  `json:"dhlabids"`
+	HTMLFormatting bool   `json:"html_formatting"`
+	Limit          int    `json:"limit"`
+	Query          string `json:"query"`
+	Window         int    `json:"window"`
 }
