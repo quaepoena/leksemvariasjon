@@ -37,6 +37,7 @@ type Conf struct {
 type Args struct {
     Config, Doctype string
     From, To int
+	Config, Directory, Doctype string
 }
 
 type Concordance struct {

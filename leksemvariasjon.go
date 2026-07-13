@@ -247,8 +247,8 @@ func main() {
 		// We can now dispense with the original path to the config file.
 		config = filepath.Base(config)
 
-		// "-directory" is a required flag, so it doesn't need to be saved.
-		args = types.Args{Config: config, Doctype: doctype, From: from, To: to}
+		args = types.Args{Config: config, Directory: directory, Doctype: doctype,
+			From: from, To: to}
 		err = writeArgs(directory, &args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error on writeArgs():\n%v\n", err)
