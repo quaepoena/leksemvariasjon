@@ -168,7 +168,7 @@ func writeCorpusCSV(records [][]string, header []string, c *types.Corpus, dir st
 	return nil
 }
 
-func getDHLabIDs(c *types.Corpus) []int {
+func dhlabIDs(c *types.Corpus) []int {
 	var ids []int
 
 	for _, v := range c.DHLabID {
@@ -287,7 +287,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	dhlabIDs := getDHLabIDs(&corpus)
+	dhlabIDs := dhlabIDs(&corpus)
 	req, err = dhlab.ConcordanceRequest(&args, &conf, dhlabIDs)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error in dhlab.ConcordanceRequest():\n%v\n", err)
