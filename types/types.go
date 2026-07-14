@@ -1,22 +1,13 @@
 package types
 
 type WorkflowStage interface {
-	Complete() bool
-	Run() error
-	WriteResult(int, error)
+	Finished() bool
+	Run(*Args, *Conf) error
 }
 
-func (c *Concordance) Complete() bool {
-	f = os.Open(c.Output)
-	return true
-}
-
-func (c *Concordance) Run() error {
-	return nil
-}
-
-func (c *Concordance) WriteResult(int, error) {
-	return 0, nil
+type Args struct {
+	ConfigFile, Directory, Doctype string
+	From, To                       int
 }
 
 type Word struct {
@@ -34,16 +25,12 @@ type Conf struct {
 	Lemmas              []Lemma
 }
 
-type Args struct {
-	Config, Directory, Doctype string
-	From, To                   int
-}
-
 type Concordance struct {
 	DocID  map[string]int
 	URN    map[string]string
 	Conc   map[string]string
 	Output string
+	Config Conf
 }
 
 type Corpus struct {
@@ -53,6 +40,8 @@ type Corpus struct {
 	Title   map[string]string
 	URN     map[string]string
 	Year    map[string]int
+	Output  string
+	Config  Conf
 }
 
 type CorpusRequest struct {

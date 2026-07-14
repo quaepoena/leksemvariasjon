@@ -11,16 +11,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	"github.com/quaepoena/leksemvariasjon/types"
 )
 
 const (
 	DHLabAPI = "https://api.nb.no/dhlab/"
 )
 
-func CorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
-	var req types.CorpusRequest
+func CorpusRequest(a *Args, c *Conf) ([]byte, error) {
+	var req CorpusRequest
 	var words []string
 	var b []byte
 
@@ -33,7 +31,7 @@ func CorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
 	req.Doctype = a.Doctype
 	req.FromYear = a.From
 	req.ToYear = a.To + 1 // "to_year" on the server side is exclusive.
-	req.Limit = 10
+	req.Limit = 10        // TODO: Change after testing.
 	req.Fulltext = strings.Join(words, " OR ")
 	req.Lang = c.Language
 
@@ -45,7 +43,7 @@ func CorpusRequest(a *types.Args, c *types.Conf) ([]byte, error) {
 	return b, nil
 }
 
-func Corpus(req []byte, c *types.Corpus) error {
+func Corpus(req []byte, c *Corpus) error {
 	var uri = DHLabAPI + "build_corpus"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -67,7 +65,7 @@ func Corpus(req []byte, c *types.Corpus) error {
 	return nil
 }
 
-func PopulateCorpusRecord(s string, c *types.Corpus) []string {
+func PopulateCorpusRecord(s string, c *Corpus) []string {
 	var fields []string
 
 	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
@@ -80,8 +78,8 @@ func PopulateCorpusRecord(s string, c *types.Corpus) []string {
 	return fields
 }
 
-func ConcordanceRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error) {
-	var req types.ConcordanceRequest
+func ConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
+	var req ConcordanceRequest
 	var words []string
 	var b []byte
 
@@ -93,7 +91,7 @@ func ConcordanceRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error)
 
 	req.DHLabIDs = ids
 	req.HTMLFormatting = false
-	req.Limit = 10
+	req.Limit = 10 // TODO: Change after testing.
 	req.Query = strings.Join(words, " OR ")
 	req.Window = 25
 
@@ -105,7 +103,7 @@ func ConcordanceRequest(a *types.Args, c *types.Conf, ids []int) ([]byte, error)
 	return b, nil
 }
 
-func Concordance(req []byte, c *types.Concordance) error {
+func Concordance(req []byte, c *Concordance) error {
 	var uri = DHLabAPI + "conc"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
