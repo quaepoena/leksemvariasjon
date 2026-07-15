@@ -145,7 +145,7 @@ func BuildCorpus(req []byte, c *Corpus) error {
 		return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
 	}
 
-	err = json.Unmarshal(b, &c)
+	err = json.Unmarshal(b, c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
 	}
