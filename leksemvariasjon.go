@@ -68,6 +68,7 @@ type Conf struct {
 type WorkflowStage interface {
 	Finished(*Args) bool
 	Run(*Args, *Conf) error
+	PopulateRecord(string) []string
 }
 
 type Corpus struct {
@@ -153,17 +154,6 @@ func BuildCorpus(req []byte, c *Corpus) error {
 	return nil
 }
 
-func PopulateCorpusRecord(s string, c *Corpus) (fields []string) {
-	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
-	fields = append(fields, c.Doctype[s])
-	fields = append(fields, c.Langs[s])
-	fields = append(fields, c.Title[s])
-	fields = append(fields, c.URN[s])
-	fields = append(fields, strconv.Itoa(c.Year[s]))
-
-	return
-}
-
 // WriteResult writes a Corpus struct to disk as a CSV.
 func (c *Corpus) WriteResult(a *Args, header []string) error {
 	var records [][]string
@@ -213,6 +203,17 @@ func (c *Corpus) Run(a *Args, conf *Conf) error {
 	return nil
 }
 
+func (c *Corpus) PopulateRecord(s string) (fields []string) {
+	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
+	fields = append(fields, c.Doctype[s])
+	fields = append(fields, c.Langs[s])
+	fields = append(fields, c.Title[s])
+	fields = append(fields, c.URN[s])
+	fields = append(fields, strconv.Itoa(c.Year[s]))
+
+	return
+}
+
 func BuildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -260,14 +261,6 @@ func BuildConcordance(req []byte, c *Concordance) error {
 	}
 
 	return nil
-}
-
-func PopulateConcordanceRecord(s string, c *Concordance) (fields []string) {
-	fields = append(fields, strconv.Itoa(c.DocID[s]))
-	fields = append(fields, c.URN[s])
-	fields = append(fields, c.Conc[s])
-
-	return
 }
 
 // WriteResult writes a Concordance struct to disk as a CSV.
@@ -326,6 +319,14 @@ func (conc *Concordance) Run(a *Args, c *Conf) error {
 	}
 
 	return nil
+}
+
+func (c *Concordance) PopulateRecord(s string) (fields []string) {
+	fields = append(fields, strconv.Itoa(c.DocID[s]))
+	fields = append(fields, c.URN[s])
+	fields = append(fields, c.Conc[s])
+
+	return
 }
 
 // readArgs reads arguments (from a previous run) from path and stores them in a.
