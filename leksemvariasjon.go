@@ -276,7 +276,7 @@ func mkUniqueDir(dir string, config string) (string, error) {
 	var base, newDir, tStamp string
 	var t time.Time
 
-	t = time.Now().UTC()
+	t = time.Now()
 	tStamp = t.Format(time.DateTime)
 	base = filepath.Base(config)
 	newDir = filepath.Join(dir,
