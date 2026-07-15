@@ -390,7 +390,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if from < to {
+	if from > to {
 		fmt.Fprintln(os.Stderr, "Flag '-to' must be greater than or equal to '-from'.")
 		os.Exit(1)
 	}
