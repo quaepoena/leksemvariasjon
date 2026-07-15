@@ -154,31 +154,6 @@ func BuildCorpus(req []byte, c *Corpus) error {
 	return nil
 }
 
-// WriteResult writes a Corpus struct to disk as a CSV.
-func (c *Corpus) WriteResult(a *Args, header []string) error {
-	var records [][]string
-
-	records = append(records, header)
-	for key, _ := range c.DHLabID {
-		records = append(records, PopulateCorpusRecord(key, c))
-	}
-
-	path := filepath.Join(a.Directory, "corpus.csv")
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	err = w.WriteAll(records)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
-	}
-
-	return nil
-}
-
 func (c *Corpus) Finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "corpus.csv"))
 }
@@ -195,7 +170,8 @@ func (c *Corpus) Run(a *Args, conf *Conf) error {
 	}
 
 	header := []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
-	err = c.WriteResult(a, header)
+	path := filepath.Join(a.Directory, "corpus.csv")
+	err = WriteDhlabResult(c, header, path, c.DHLabID)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
 	}
@@ -263,31 +239,6 @@ func BuildConcordance(req []byte, c *Concordance) error {
 	return nil
 }
 
-// WriteResult writes a Concordance struct to disk as a CSV.
-func (c *Concordance) WriteResult(a *Args, header []string) error {
-	var records [][]string
-
-	records = append(records, header)
-	for key, _ := range c.DocID {
-		records = append(records, PopulateConcordanceRecord(key, c))
-	}
-
-	path := filepath.Join(a.Directory, "concordance.csv")
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	err = w.WriteAll(records)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
-	}
-
-	return nil
-}
-
 func (conc *Concordance) Finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "concordance.csv"))
 }
@@ -313,7 +264,8 @@ func (conc *Concordance) Run(a *Args, c *Conf) error {
 	}
 
 	header := []string{"dhlabid", "urn", "text"}
-	err = conc.WriteResult(a, header)
+	path := filepath.Join(a.Directory, "concordance.csv")
+	err = WriteDhlabResult(conc, header, path, conc.DocID)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
 	}
@@ -471,6 +423,30 @@ func fileExists(s string) bool {
 	defer f.Close()
 
 	return true
+}
+
+// WriteDhlabResult writes a struct of information from DHLab to disk as a CSV.
+func WriteDhlabResult(w WorkflowStage, header []string, path string, ids map[string]int) error {
+	var records [][]string
+
+	records = append(records, header)
+	for key := range ids {
+		records = append(records, w.PopulateRecord(key))
+	}
+
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
+	}
+	defer f.Close()
+
+	wr := csv.NewWriter(f)
+	err = wr.WriteAll(records)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+	}
+
+	return nil
 }
 
 func main() {
