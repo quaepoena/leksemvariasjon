@@ -153,9 +153,7 @@ func BuildCorpus(req []byte, c *Corpus) error {
 	return nil
 }
 
-func PopulateCorpusRecord(s string, c *Corpus) []string {
-	var fields []string
-
+func PopulateCorpusRecord(s string, c *Corpus) (fields []string) {
 	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
 	fields = append(fields, c.Doctype[s])
 	fields = append(fields, c.Langs[s])
@@ -163,7 +161,7 @@ func PopulateCorpusRecord(s string, c *Corpus) []string {
 	fields = append(fields, c.URN[s])
 	fields = append(fields, strconv.Itoa(c.Year[s]))
 
-	return fields
+	return
 }
 
 // WriteResult writes a Corpus struct to disk as a CSV.
@@ -264,14 +262,12 @@ func BuildConcordance(req []byte, c *Concordance) error {
 	return nil
 }
 
-func PopulateConcordanceRecord(s string, c *Concordance) []string {
-	var fields []string
-
+func PopulateConcordanceRecord(s string, c *Concordance) (fields []string) {
 	fields = append(fields, strconv.Itoa(c.DocID[s]))
 	fields = append(fields, c.URN[s])
 	fields = append(fields, c.Conc[s])
 
-	return fields
+	return
 }
 
 // WriteResult writes a Concordance struct to disk as a CSV.
