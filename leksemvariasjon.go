@@ -123,7 +123,7 @@ func BuildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 
 	b, err := json.Marshal(req)
 	if err != nil {
-		return []byte{}, errors.New(fmt.Sprintf("Error on json.Marshal(): %+v\n", err))
+		return []byte{}, errors.New(fmt.Sprintf("Error on json.Marshal():\n%v\n", err))
 	}
 
 	return b, nil
@@ -136,18 +136,18 @@ func BuildCorpus(req []byte, c *Corpus) error {
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in http.Post(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in http.Post():\n%v\n", err))
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in io.ReadAll():\n%v\n", err))
 	}
 
 	err = json.Unmarshal(b, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 	}
 
 	return nil
@@ -197,18 +197,18 @@ func (c *Corpus) Finished(a *Args) bool {
 func (c *Corpus) Run(a *Args, conf *Conf) error {
 	req, err := BuildCorpusRequest(a, conf)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.BuildRequest(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in Corpus.BuildRequest():\n%v\n", err))
 	}
 
 	err = BuildCorpus(req, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.BuildCorpus(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in Corpus.BuildCorpus():\n%v\n", err))
 	}
 
 	header := []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
 	err = c.WriteResult(a, header)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
 	}
 
 	return nil
