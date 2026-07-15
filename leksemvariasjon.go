@@ -355,29 +355,6 @@ func loadConf(path string, c *Conf) error {
 	return nil
 }
 
-func writeCorpusCSV(records [][]string, header []string, c *Corpus, dir string) error {
-	records = append(records, header)
-	for key, _ := range c.DHLabID {
-		records = append(records, PopulateCorpusRecord(key, c))
-	}
-
-	path := filepath.Join(dir, "outgoing", "corpus.csv")
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	err = w.WriteAll(records)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
-	}
-	defer f.Close()
-
-	return nil
-}
-
 func dhlabIDs(c *Corpus) []int {
 	var ids []int
 
