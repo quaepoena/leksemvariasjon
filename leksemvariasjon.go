@@ -212,7 +212,7 @@ func dhlabIDs(a *Args) ([]int, error) {
 
 	f, err := os.Open(filepath.Join(a.Directory, "corpus.csv"))
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.OpenFile():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
 	}
 	defer f.Close()
 
