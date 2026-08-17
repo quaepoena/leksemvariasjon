@@ -207,38 +207,6 @@ func (c *Corpus) populateRecord(s string) (fields []string) {
 	return
 }
 
-func dhlabIDs(a *Args) ([]int, error) {
-	var ids []int
-
-	f, err := os.Open(filepath.Join(a.Directory, "corpus.csv"))
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	for {
-		rec, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
-		}
-		if rec[0] == "dhlabid" {
-			continue
-		}
-
-		id, err := strconv.Atoi(rec[0])
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
-		}
-		ids = append(ids, id)
-	}
-
-	return ids, nil
-}
-
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -293,7 +261,7 @@ func (conc *Concordance) finished(a *Args) bool {
 }
 
 func (conc *Concordance) run(a *Args, c *Conf) error {
-	dhlabIDs, err := dhlabIDs(a)
+	dhlabIDs, err := dhlabIDs(filepath.Join(a.Directory, "corpus.csv"))
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
 	}
@@ -330,6 +298,37 @@ func (c *Concordance) populateRecord(s string) (fields []string) {
 	return
 }
 
+func dhlabIDs(p string) ([]int, error) {
+	var ids []int
+
+	f, err := os.Open(p)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
+	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
+		}
+		if rec[0] == "dhlabid" {
+			continue
+		}
+
+		id, err := strconv.Atoi(rec[0])
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
 // readArgs reads arguments (from a previous run) from path and stores them in a.
 func readArgs(path string, a *Args) error {
 	var f *os.File
