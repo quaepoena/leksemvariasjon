@@ -45,32 +45,42 @@ func init() {
 	flag.IntVar(&to, "to", 0, "The end year for the search (inclusive).")
 }
 
+// Struct Args holds command line arguments and saves/read them to/from disk.
 type Args struct {
 	ConfigFile, Directory, Doctype string
 	From, To                       int
 }
 
+// Struct Word contains word forms with the corresponding morphological
+// information the user wants to search for.
 type Word struct {
 	Form, Value string
 	Morphology  []string
 }
 
+// Struct Lemma holds a lemma and all the Words under it.
 type Lemma struct {
 	Lemma string
 	Words []Word
 }
 
+// Struct Conf holds the parsed information from the config.
 type Conf struct {
 	Attribute, Language string
 	Lemmas              []Lemma
 }
 
+// Interface WorkflowStage represents the repetitive tasks for each step of the
+//
+//	program.
 type WorkflowStage interface {
 	finished(*Args) bool
 	run(*Args, *Conf) error
 	populateRecord(string) []string
 }
 
+// Struct Corpus contains the information we need from the DHLab build_corpus
+// API call.
 type Corpus struct {
 	DHLabID map[string]int
 	Doctype map[string]string
@@ -80,6 +90,8 @@ type Corpus struct {
 	Year    map[string]int
 }
 
+// Struct CorpusRequest contains the necessary information for the DHLab
+// build_corpus API call.
 type CorpusRequest struct {
 	Doctype  string `json:"doctype"`
 	FromYear int    `json:"from_year"`
@@ -89,12 +101,16 @@ type CorpusRequest struct {
 	Limit    int    `json:"limit"`
 }
 
+// Struct Concordance contains the information we need from the DHLab conc
+// API call.
 type Concordance struct {
 	DocID map[string]int
 	URN   map[string]string
 	Conc  map[string]string
 }
 
+// Struct ConcordanceRequest contains the necessary information for the DHLab
+// conc API call.
 type ConcordanceRequest struct {
 	DHLabIDs       []int  `json:"dhlabids"`
 	HTMLFormatting bool   `json:"html_formatting"`
@@ -103,7 +119,8 @@ type ConcordanceRequest struct {
 	Window         int    `json:"window"`
 }
 
-// buildCorpusRequest builds and returns a JSON object for an HTTP Request.
+// buildCorpusRequest builds and returns a JSON object for the DHLab
+// build_corpus call.
 func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	var req CorpusRequest
 	var words []string
