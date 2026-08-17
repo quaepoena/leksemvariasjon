@@ -468,6 +468,38 @@ func writeDhlabResult(w WorkflowStage, header []string, path string, ids map[str
 	return nil
 }
 
+func dhlabIDs(p string) ([]int, error) {
+	var ids []int
+
+	f, err := os.Open(p)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
+	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
+		}
+		if rec[0] == "dhlabid" {
+			continue
+		}
+
+		id, err := strconv.Atoi(rec[0])
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
 func main() {
 	var args Args = Args{}
 	var conc Concordance = Concordance{}
