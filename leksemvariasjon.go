@@ -207,6 +207,35 @@ func (c *Corpus) populateRecord(s string) (fields []string) {
 	return
 }
 
+func dhlabIDs(a *Args) ([]int, error) {
+	var ids []int
+
+	f, err := os.Open(filepath.Join(a.Directory, "corpus.csv"))
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in os.OpenFile():\n%v\n", err))
+	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if rec[0] == "dhlabid" {
+			continue
+		}
+
+		id, err := strconv.Atoi(rec[0])
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -400,35 +429,6 @@ func loadConf(path string, c *Conf) error {
 	}
 
 	return nil
-}
-
-func dhlabIDs(a *Args) ([]int, error) {
-	var ids []int
-
-	f, err := os.Open(filepath.Join(a.Directory, "corpus.csv"))
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.OpenFile():\n%v\n", err))
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	for {
-		rec, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if rec[0] == "dhlabid" {
-			continue
-		}
-
-		id, err := strconv.Atoi(rec[0])
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
-		}
-		ids = append(ids, id)
-	}
-
-	return ids, nil
 }
 
 // fileExists returns true if a given file path exists.
