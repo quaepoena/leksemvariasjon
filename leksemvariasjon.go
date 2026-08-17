@@ -222,6 +222,9 @@ func dhlabIDs(a *Args) ([]int, error) {
 		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
+		}
 		if rec[0] == "dhlabid" {
 			continue
 		}
