@@ -505,6 +505,35 @@ func dhlabIDs(p string) ([]int, error) {
 	return ids, nil
 }
 
+// concordanceLines returns each selection of concordance text as a list of strings.
+func concordanceLines(p string) ([]string, error) {
+	var lines []string
+
+	f, err := os.Open(p)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
+	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
+		}
+		if rec[2] == "text" {
+			continue
+		}
+
+		lines = append(lines, rec[2])
+	}
+
+	return lines, nil
+}
+
 func main() {
 	var args Args = Args{}
 	var conc Concordance = Concordance{}
