@@ -119,6 +119,14 @@ type ConcordanceRequest struct {
 	Window         int    `json:"window"`
 }
 
+// Struct Tagged contains the information returned from humit-tagger.
+type Tagged struct {
+	Features []string
+	Lang     string
+	Lemma    string
+	Word     string
+}
+
 // buildCorpusRequest builds and returns a JSON object for the DHLab
 // build_corpus call.
 func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
@@ -298,37 +306,34 @@ func (c *Concordance) populateRecord(s string) (fields []string) {
 	return
 }
 
-func dhlabIDs(p string) ([]int, error) {
-	var ids []int
-
-	f, err := os.Open(p)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	for {
-		rec, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
-		}
-		if rec[0] == "dhlabid" {
-			continue
-		}
-
-		id, err := strconv.Atoi(rec[0])
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
-		}
-		ids = append(ids, id)
-	}
-
-	return ids, nil
+func (t *Tagged) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "tagged.csv"))
 }
+
+func (t *Tagged) run(a *Args, conf *Conf) error {
+	conc := filepath.Join(a.Directory, "concordance.csv")
+	dhlabIDs, err := dhlabIDs(conc)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
+	}
+
+	lines, err := concordanceLines(conc)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in concordanceLines():\n%v\n", err))
+	}
+
+	tagged_lines = tagger.TagList()
+
+	return nil
+}
+
+func (t *Tagged) populateRecord(dhlabIDs []int, results map[int]string) (fields []string) {
+	fields = append(fields, t.Lang)
+
+	return
+}
+
+
 // readArgs reads arguments (from a previous run) from path and stores them in a.
 func readArgs(path string, a *Args) error {
 	var f *os.File
