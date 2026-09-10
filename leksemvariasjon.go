@@ -482,11 +482,12 @@ func csvColumn(p string, c int) ([]any, error) {
 	defer f.Close()
 
 	r := csv.NewReader(f)
-	for {
-		if r.InputOffset() == 0 {
-			continue
-		}
+	_, err = r.Read() // Discard the header.
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
+	}
 
+	for {
 		rec, err := r.Read()
 		if err == io.EOF {
 			break
