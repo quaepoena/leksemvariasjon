@@ -269,16 +269,18 @@ func (conc *Concordance) finished(a *Args) bool {
 }
 
 func (conc *Concordance) run(a *Args, c *Conf) error {
-	dhlabIDs, err := dhlabIDs(filepath.Join(a.Directory, "corpus.csv"))
+	var IDs []int
+
+	IDs, err := dhlabIDs(filepath.Join(a.Directory, "corpus.csv"), 0)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
 	}
-	if dhlabIDs == nil {
+	if IDs == nil {
 		return errors.New(fmt.Sprintf("No dhlabIDs were found in %s.",
 			filepath.Join(a.Directory, "corpus.csv")))
 	}
 
-	req, err := buildConcordanceRequest(a, c, dhlabIDs)
+	req, err := buildConcordanceRequest(a, c, IDs)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in ConcordanceRequest():\n%v\n", err))
 	}
@@ -312,7 +314,7 @@ func (t *Tagged) finished(a *Args) bool {
 
 func (t *Tagged) run(a *Args, conf *Conf) error {
 	conc := filepath.Join(a.Directory, "concordance.csv")
-	dhlabIDs, err := dhlabIDs(conc)
+	dhlabIDs, err := dhlabIDs(conc, 0)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
 	}
@@ -321,8 +323,6 @@ func (t *Tagged) run(a *Args, conf *Conf) error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in concordanceLines():\n%v\n", err))
 	}
-
-	tagged_lines = tagger.TagList()
 
 	return nil
 }
@@ -354,7 +354,8 @@ func readArgs(path string, a *Args) error {
 	return nil
 }
 
-// mkUniqueDir makes a unique output directory for each (non-resumptive) run of the program.
+// mkUniqueDir makes a unique output directory for each (non-resumptive) run
+// of the program.
 func mkUniqueDir(dir string, config string) (string, error) {
 	var base, newDir, tStamp string
 	var t time.Time
@@ -473,8 +474,8 @@ func writeDhlabResult(w WorkflowStage, header []string, path string, ids map[str
 	return nil
 }
 
-func dhlabIDs(p string) ([]int, error) {
-	var ids []int
+func csvColumn(p string, c int) ([]any, error) {
+	var fields []any
 
 	f, err := os.Open(p)
 	if err != nil {
@@ -484,6 +485,10 @@ func dhlabIDs(p string) ([]int, error) {
 
 	r := csv.NewReader(f)
 	for {
+		if r.InputOffset() == 0 {
+			continue
+		}
+
 		rec, err := r.Read()
 		if err == io.EOF {
 			break
@@ -491,18 +496,32 @@ func dhlabIDs(p string) ([]int, error) {
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
 		}
-		if rec[0] == "dhlabid" {
-			continue
-		}
 
-		id, err := strconv.Atoi(rec[0])
+		fields = append(fields, rec[c])
+	}
+
+	return fields, nil
+}
+
+func dhlabIDs(p string, f int) ([]int, error) {
+	var IDs []int
+
+	s, err := csvColumn(p, f)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in csvColumn():\n%v\n", err))
+	}
+
+	for i := 0; i < len(s); i++ {
+		st := s[i].(string)
+		in, err := strconv.Atoi(st)
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
 		}
-		ids = append(ids, id)
+
+		IDs = append(IDs, in)
 	}
 
-	return ids, nil
+	return IDs, nil
 }
 
 // concordanceLines returns each selection of concordance text as a list of strings.
@@ -591,7 +610,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		// We can now dispense with the original path to the config file.
+		// The '-config' flag, which was a path, is changed to the basename.
 		config = filepath.Base(config)
 
 		args = Args{ConfigFile: config, Directory: directory, Doctype: doctype,
