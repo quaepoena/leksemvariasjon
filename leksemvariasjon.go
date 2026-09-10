@@ -104,7 +104,6 @@ type CorpusRequest struct {
 // API call.
 type Concordance struct {
 	DocID map[string]int
-	URN   map[string]string
 	Conc  map[string]string
 }
 
@@ -288,7 +287,7 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in BuildConcordance():\n%v\n", err))
 	}
 
-	header := []string{"dhlabid", "urn", "text"}
+	header := []string{"dhlabid", "text"}
 	path := filepath.Join(a.Directory, "concordance.csv")
 	err = writeDhlabResult(conc, header, path, conc.DocID)
 	if err != nil {
@@ -300,7 +299,6 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 
 func (c *Concordance) populateRecord(s string) (fields []string) {
 	fields = append(fields, strconv.Itoa(c.DocID[s]))
-	fields = append(fields, c.URN[s])
 	fields = append(fields, c.Conc[s])
 
 	return
