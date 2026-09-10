@@ -85,7 +85,6 @@ type Corpus struct {
 	DHLabID map[string]int
 	Doctype map[string]string
 	Langs   map[string]string
-	Title   map[string]string
 	URN     map[string]string
 	Year    map[string]int
 }
@@ -194,7 +193,7 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in Corpus.buildCorpus():\n%v\n", err))
 	}
 
-	header := []string{"dhlabid", "doctype", "lang", "title", "urn", "year"}
+	header := []string{"dhlabid", "doctype", "lang", "urn", "year"}
 	path := filepath.Join(a.Directory, "corpus.csv")
 	err = writeDhlabResult(c, header, path, c.DHLabID)
 	if err != nil {
@@ -208,7 +207,6 @@ func (c *Corpus) populateRecord(s string) (fields []string) {
 	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
 	fields = append(fields, c.Doctype[s])
 	fields = append(fields, c.Langs[s])
-	fields = append(fields, c.Title[s])
 	fields = append(fields, c.URN[s])
 	fields = append(fields, strconv.Itoa(c.Year[s]))
 
