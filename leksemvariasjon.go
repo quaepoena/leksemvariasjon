@@ -76,6 +76,7 @@ type WorkflowStage interface {
 	finished(*Args) bool
 	run(*Args, *Conf) error
 	populateRecord(string) []string
+	writeResult(*Args) error
 }
 
 // Struct Corpus contains the information we need from the DHLab build_corpus
@@ -211,6 +212,17 @@ func (c *Corpus) populateRecord(s string) (fields []string) {
 	return
 }
 
+func (c *Corpus) writeResult(a *Args) error {
+	header := []string{"dhlabid", "doctype", "lang", "urn", "year"}
+	path := filepath.Join(a.Directory, "corpus.csv")
+	err := writeDhlabResult(c, header, path, c.DHLabID)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
+	}
+
+	return nil
+}
+
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -260,8 +272,21 @@ func buildConcordance(req []byte, c *Concordance) error {
 	return nil
 }
 
+func writeFilesToBeTagged(c *Concordance, p string) error {
+	for key := range c.DocID {
+		id := c.DocID[key]
+		conc := c.Conc[key]
+
+		os.WriteFile(filepath.Join(p, strconv.Itoa(id)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10)),
+			[]byte(conc),
+			0664)
+	}
+
+	return nil
+}
+
 func (conc *Concordance) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "concordance.csv"))
+	return fileExists(filepath.Join(a.Directory, "concordanceWritten.txt"))
 }
 
 func (conc *Concordance) run(a *Args, c *Conf) error {
@@ -286,13 +311,6 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in BuildConcordance():\n%v\n", err))
 	}
 
-	header := []string{"dhlabid", "text"}
-	path := filepath.Join(a.Directory, "concordance.csv")
-	err = writeDhlabResult(conc, header, path, conc.DocID)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
-	}
-
 	return nil
 }
 
@@ -301,6 +319,26 @@ func (c *Concordance) populateRecord(s string) (fields []string) {
 	fields = append(fields, c.Conc[s])
 
 	return
+}
+
+func (c *Concordance) writeResult(a *Args) error {
+	p := filepath.Join(a.Directory, "tagged")
+	err := os.Mkdir(p, 0775)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
+	}
+
+	err = writeFilesToBeTagged(c, p)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
+	}
+
+	err = os.WriteFile(filepath.Join(a.Directory, "concordanceWritten.txt"), []byte{}, 0664)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+	}
+
+	return nil
 }
 
 func (t *Tagged) finished(a *Args) bool {
@@ -630,13 +668,19 @@ func main() {
 	// coll := &Collected{}
 
 	// TODO: Consider freeing these objects manually.
-	workflow_steps := []WorkflowStage{&corp, &conc}
-	for _, w := range workflow_steps {
-		if !w.finished(&args) {
+	stages := []WorkflowStage{&corp, &conc}
+	for _, s := range stages {
+		if !s.finished(&args) {
 
-			err = w.run(&args, &conf)
+			err = s.run(&args, &conf)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error in %T.Run():\n%v\n", w, err)
+				fmt.Fprintf(os.Stderr, "Error in %T.Run():\n%v\n", s, err)
+				os.Exit(1)
+			}
+
+			err = s.writeResult(&args)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error in %T.writeResult():\n%v\n", s, err)
 				os.Exit(1)
 			}
 		}
