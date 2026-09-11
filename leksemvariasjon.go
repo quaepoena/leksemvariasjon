@@ -71,8 +71,7 @@ type Conf struct {
 }
 
 // Interface WorkflowStage represents the repetitive tasks for each step of the
-//
-//	program.
+// program.
 type WorkflowStage interface {
 	finished(*Args) bool
 	run(*Args, *Conf) error
