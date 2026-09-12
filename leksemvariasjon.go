@@ -337,13 +337,6 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 	return nil
 }
 
-func (c *Concordance) populateRecord(s string) (fields []string) {
-	fields = append(fields, strconv.Itoa(c.DocID[s]))
-	fields = append(fields, c.Conc[s])
-
-	return
-}
-
 func (c *Concordance) writeResult(a *Args) error {
 	p := filepath.Join(a.Directory, "tagged")
 	err := os.Mkdir(p, 0775)
