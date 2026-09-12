@@ -75,7 +75,6 @@ type Conf struct {
 type WorkflowStage interface {
 	finished(*Args) bool
 	run(*Args, *Conf) error
-	populateRecord(string) []string
 	writeResult(*Args) error
 }
 
@@ -177,6 +176,16 @@ func buildCorpus(req []byte, c *Corpus) error {
 	return nil
 }
 
+func (c *Corpus) populateRecord(s string) (fields []string) {
+	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
+	fields = append(fields, c.Doctype[s])
+	fields = append(fields, c.Langs[s])
+	fields = append(fields, c.URN[s])
+	fields = append(fields, strconv.Itoa(c.Year[s]))
+
+	return
+}
+
 func (c *Corpus) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "corpus.csv"))
 }
@@ -200,16 +209,6 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 	}
 
 	return nil
-}
-
-func (c *Corpus) populateRecord(s string) (fields []string) {
-	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
-	fields = append(fields, c.Doctype[s])
-	fields = append(fields, c.Langs[s])
-	fields = append(fields, c.URN[s])
-	fields = append(fields, strconv.Itoa(c.Year[s]))
-
-	return
 }
 
 func (c *Corpus) writeResult(a *Args) error {
