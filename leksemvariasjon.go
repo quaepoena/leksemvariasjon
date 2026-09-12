@@ -614,8 +614,7 @@ func main() {
 		// the variables accordingly.
 		err = readArgs(filepath.Join(directory, "args.gob"), &args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, `Error in readArgs():\n%v\nThis is a resumptive run.
-            Did you specify the already-existing output directory from a previous run?`, err)
+			fmt.Fprintf(os.Stderr, "Error in readArgs():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
 			os.Exit(1)
 		}
 
