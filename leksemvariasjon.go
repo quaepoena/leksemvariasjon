@@ -186,6 +186,30 @@ func (c *Corpus) populateRecord(s string) (fields []string) {
 	return
 }
 
+// writeDhlabResult writes a struct of information from DHLab to disk as a CSV.
+func writeDhlabResult(c *Corpus, header []string, path string, ids map[string]int) error {
+	var records [][]string
+
+	records = append(records, header)
+	for key := range ids {
+		records = append(records, c.populateRecord(key))
+	}
+
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
+	}
+	defer f.Close()
+
+	wr := csv.NewWriter(f)
+	err = wr.WriteAll(records)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+	}
+
+	return nil
+}
+
 func (c *Corpus) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "corpus.csv"))
 }
@@ -480,30 +504,6 @@ func fileExists(s string) bool {
 	defer f.Close()
 
 	return true
-}
-
-// writeDhlabResult writes a struct of information from DHLab to disk as a CSV.
-func writeDhlabResult(w WorkflowStage, header []string, path string, ids map[string]int) error {
-	var records [][]string
-
-	records = append(records, header)
-	for key := range ids {
-		records = append(records, w.populateRecord(key))
-	}
-
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer f.Close()
-
-	wr := csv.NewWriter(f)
-	err = wr.WriteAll(records)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
-	}
-
-	return nil
 }
 
 func csvColumn(p string, c int) ([]any, error) {
