@@ -359,9 +359,8 @@ func (t *Tagger) finished(a *Args) bool {
 }
 
 func (t *Tagger) run(a *Args, conf *Conf) error {
-	cmd := exec.Command("python", "./tagger.py",
-		filepath.Join(a.Directory, "tagged"),
-		filepath.Join(a.Directory, "tagged"))
+	p := filepath.Join(a.Directory, "tagged")
+	cmd := exec.Command("python", "./tagger.py", p, p)
 
 	err := cmd.Run()
 	if err != nil {
