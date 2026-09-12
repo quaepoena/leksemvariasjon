@@ -16,6 +16,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -116,13 +117,9 @@ type ConcordanceRequest struct {
 	Window         int    `json:"window"`
 }
 
-// Struct Tagged contains the information returned from humit-tagger.
-type Tagged struct {
-	Features []string
-	Lang     string
-	Lemma    string
-	Word     string
-}
+// Struct Tagger represents running the external tagger.
+// The data it works with is read from and written directly to disk.
+type Tagger struct{}
 
 // buildCorpusRequest builds and returns a JSON object for the DHLab
 // build_corpus call.
@@ -357,29 +354,36 @@ func (c *Concordance) writeResult(a *Args) error {
 	return nil
 }
 
-func (t *Tagged) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "tagged.csv"))
+func (t *Tagger) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
-func (t *Tagged) run(a *Args, conf *Conf) error {
-	conc := filepath.Join(a.Directory, "concordance.csv")
-	dhlabIDs, err := dhlabIDs(conc, 0)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
-	}
+func (t *Tagger) run(a *Args, conf *Conf) error {
+	cmd := exec.Command("python", "./tagger.py",
+		filepath.Join(a.Directory, "tagged"),
+		filepath.Join(a.Directory, "tagged"))
 
-	lines, err := concordanceLines(conc)
+	err := cmd.Run()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in concordanceLines():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in Cmd.Run():\n%v\n", err))
 	}
 
 	return nil
 }
 
-func (t *Tagged) populateRecord(dhlabIDs []int, results map[int]string) (fields []string) {
-	fields = append(fields, t.Lang)
+func (t *Tagger) writeResult(a *Args) error {
+	err := os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0664)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+	}
 
-	return
+	return nil
+}
+
+func (t *Filter) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "filteringFinished.txt"))
+}
+
 }
 
 
@@ -585,6 +589,7 @@ func main() {
 	var conf Conf = Conf{}
 	var corp Corpus = Corpus{}
 	var err error
+	var tag Tagger = Tagger{}
 
 	flag.Parse()
 
@@ -654,12 +659,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	// tag := &Tagging{}
 	// id := &LanguageID{}
 	// coll := &Collected{}
 
 	// TODO: Consider freeing these objects manually.
-	stages := []WorkflowStage{&corp, &conc}
+	stages := []WorkflowStage{&corp, &conc, &tag}
 	for _, s := range stages {
 		if !s.finished(&args) {
 
