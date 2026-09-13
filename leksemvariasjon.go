@@ -658,9 +658,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// id := &LanguageID{}
-	// coll := &Collected{}
-
 	// TODO: Consider freeing these objects manually.
 	stages := []WorkflowStage{&corp, &conc, &tag}
 	for _, s := range stages {
