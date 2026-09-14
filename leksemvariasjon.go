@@ -434,13 +434,8 @@ type Filter struct {
 }
 
 func extractDhlabId(s string) (int, error) {
-	start := regexp.MustCompile("^/.*/")
-	end := regexp.MustCompile("-.*$")
-
-	pre := start.ReplaceAllLiteralString(s, "")
-	suf := end.ReplaceAllLiteralString(pre, "")
-
-	id, err := strconv.Atoi(suf)
+	re := regexp.MustCompile("^/.+/([[:digit:]]+)-.+$")
+	id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
 	if err != nil {
 		return 0, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
 	}
