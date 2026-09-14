@@ -282,8 +282,8 @@ func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 }
 
 // buildConcordanceResponse requests data with the parameters from req and populates
-// c with the result.
-func buildConcordanceResponse(req []byte, c *ConcordanceResponse) error {
+// concResp with the result.
+func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	var uri = DHLabAPI + "conc"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -297,21 +297,9 @@ func buildConcordanceResponse(req []byte, c *ConcordanceResponse) error {
 		return errors.New(fmt.Sprintf("Error in io.ReadAll():\n%v\n", err))
 	}
 
-	err = json.Unmarshal(b, c)
+	err = json.Unmarshal(b, concResp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
-	}
-
-	return nil
-}
-
-func writeFilesToBeTagged(c *ConcordanceResponse, p string) error {
-	for key := range c.DocID {
-		id := c.DocID[key]
-		conc := c.Conc[key]
-
-		os.WriteFile(filepath.Join(p, strconv.Itoa(id)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10)),
-			[]byte(conc), 0666)
 	}
 
 	return nil
@@ -320,7 +308,7 @@ func writeFilesToBeTagged(c *ConcordanceResponse, p string) error {
 func dhlabIDs(a *Args) ([]int, error) {
 	var ids []int
 	var b []byte
-	var c *Corpus
+	var corp *Corpus
 
 	f, err := os.Open(filepath.Join(a.Directory, "corpus.json"))
 	if err != nil {
@@ -339,12 +327,12 @@ func dhlabIDs(a *Args) ([]int, error) {
 		}
 	}
 
-	err = json.Unmarshal(b, c)
+	err = json.Unmarshal(b, corp)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 	}
 
-	for i := range c.DHLabID {
+	for i := range corp.DHLabID {
 		ids = append(ids, i)
 	}
 
@@ -356,19 +344,19 @@ func (conc *Concordance) finished(a *Args) bool {
 }
 
 func (conc *Concordance) run(a *Args, c *Conf) error {
-	var IDs []int
+	var ids []int
 	var resp *ConcordanceResponse
 
-	IDs, err := dhlabIDs(a)
+	ids, err := dhlabIDs(a)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
 	}
-	if IDs == nil {
+	if ids == nil {
 		return errors.New(fmt.Sprintf("No dhlabIDs were found in %s.",
-			filepath.Join(a.Directory, "corpus.csv")))
+			filepath.Join(a.Directory, "corpus.json")))
 	}
 
-	req, err := buildConcordanceRequest(a, c, IDs)
+	req, err := buildConcordanceRequest(a, c, ids)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in ConcordanceRequest():\n%v\n", err))
 	}
@@ -378,24 +366,14 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in BuildConcordanceResponse():\n%v\n", err))
 	}
 
-	return nil
-}
-
-func (c *ConcordanceResponse) writeResult(a *Args) error {
-	p := filepath.Join(a.Directory, "tagged")
-	err := os.Mkdir(p, 0775)
+	b, err := json.Marshal(conc)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
 	}
 
-	err = writeFilesToBeTagged(c, p)
+	err = os.WriteFile(filepath.Join(a.Directory, "concordance.json"), b, 0666)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
-	}
-
-	err = os.WriteFile(filepath.Join(a.Directory, "concordanceWritten.txt"), []byte{}, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in os.WriteFile() with concordance.json:\n%v\n", err))
 	}
 
 	return nil
@@ -405,28 +383,57 @@ func (c *ConcordanceResponse) writeResult(a *Args) error {
 // The data it works with is read from and written directly to disk.
 type Tag struct{}
 
+func writeFilesToBeTagged(c *ConcordanceResponse, p string) error {
+	for key := range c.DocID {
+		id := c.DocID[key]
+		conc := c.Conc[key]
+
+		os.WriteFile(filepath.Join(p, strconv.Itoa(id)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10)),
+			[]byte(conc), 0666)
+	}
+
+	return nil
+}
+
 func (t *Tag) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
 func (t *Tag) run(a *Args, conf *Conf) error {
 	p := filepath.Join(a.Directory, "tagged")
+	err := os.Mkdir(p, 0775)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
+	}
+
+	var resp *ConcordanceResponse
+	err = writeFilesToBeTagged(resp, p)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
+	}
+
+	err = os.WriteFile(filepath.Join(a.Directory, "concordanceWritten.txt"), []byte{}, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+	}
+
+	p = filepath.Join(a.Directory, "tagged")
 	cmd := exec.Command("python", "./tagger.py", p, p)
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in Cmd.Run():\n%v\n", err))
+	}
+
+	err = os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
 	}
 
 	return nil
 }
 
 func (t *Tag) writeResult(a *Args) error {
-	err := os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
-	}
-
 	return nil
 }
 
