@@ -6,6 +6,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/csv"
 	"encoding/gob"
@@ -14,10 +15,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -76,7 +79,25 @@ type Conf struct {
 type WorkflowStage interface {
 	finished(*Args) bool
 	run(*Args, *Conf) error
-	writeResult(*Args) error
+}
+
+// Struct TaggedWord ...
+type TaggedWord struct {
+	Word  string   `json:"w"`
+	Tags  []string `json:"t"`
+	Lemma string   `json:"l"`
+}
+
+// Struct TaggedEntry ...
+type TaggedEntry struct {
+	Lang        string
+	TaggedWords []TaggedWord `json:"sent"`
+}
+
+// Struct MatchingEntry ...
+type MatchingEntry struct {
+	Attribute, Form, Lang, Lemma, Value string
+	DhlabId                             int
 }
 
 // Struct Corpus contains the information we need from the DHLab build_corpus
@@ -99,27 +120,6 @@ type CorpusRequest struct {
 	Lang     string `json:"lang"`
 	Limit    int    `json:"limit"`
 }
-
-// Struct Concordance contains the information we need from the DHLab conc
-// API call.
-type Concordance struct {
-	DocID map[string]int
-	Conc  map[string]string
-}
-
-// Struct ConcordanceRequest contains the necessary information for the DHLab
-// conc API call.
-type ConcordanceRequest struct {
-	DHLabIDs       []int  `json:"dhlabids"`
-	HTMLFormatting bool   `json:"html_formatting"`
-	Limit          int    `json:"limit"`
-	Query          string `json:"query"`
-	Window         int    `json:"window"`
-}
-
-// Struct Tagger represents running the external tagger.
-// The data it works with is read from and written directly to disk.
-type Tagger struct{}
 
 // buildCorpusRequest builds and returns a JSON object for the DHLab
 // build_corpus call.
@@ -207,6 +207,23 @@ func writeDhlabResult(c *Corpus, header []string, path string, ids map[string]in
 	return nil
 }
 
+// writeCsv
+func writeCsv(rows [][]string, path string) error {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
+	}
+	defer f.Close()
+
+	wr := csv.NewWriter(f)
+	err = wr.WriteAll(rows)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+	}
+
+	return nil
+}
+
 func (c *Corpus) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "corpus.csv"))
 }
@@ -232,15 +249,21 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 	return nil
 }
 
-func (c *Corpus) writeResult(a *Args) error {
-	header := []string{"dhlabid", "doctype", "lang", "urn", "year"}
-	path := filepath.Join(a.Directory, "corpus.csv")
-	err := writeDhlabResult(c, header, path, c.DHLabID)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
-	}
+// Struct Concordance contains the information we need from the DHLab conc
+// API call.
+type Concordance struct {
+	DocID map[string]int
+	Conc  map[string]string
+}
 
-	return nil
+// Struct ConcordanceRequest contains the necessary information for the DHLab
+// conc API call.
+type ConcordanceRequest struct {
+	DHLabIDs       []int  `json:"dhlabids"`
+	HTMLFormatting bool   `json:"html_formatting"`
+	Limit          int    `json:"limit"`
+	Query          string `json:"query"`
+	Window         int    `json:"window"`
 }
 
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
@@ -354,11 +377,15 @@ func (c *Concordance) writeResult(a *Args) error {
 	return nil
 }
 
-func (t *Tagger) finished(a *Args) bool {
+// Struct Tag represents running the external tagger.
+// The data it works with is read from and written directly to disk.
+type Tag struct{}
+
+func (t *Tag) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
-func (t *Tagger) run(a *Args, conf *Conf) error {
+func (t *Tag) run(a *Args, conf *Conf) error {
 	p := filepath.Join(a.Directory, "tagged")
 	cmd := exec.Command("python", "./tagger.py", p, p)
 
@@ -370,7 +397,7 @@ func (t *Tagger) run(a *Args, conf *Conf) error {
 	return nil
 }
 
-func (t *Tagger) writeResult(a *Args) error {
+func (t *Tag) writeResult(a *Args) error {
 	err := os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0664)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
@@ -379,12 +406,191 @@ func (t *Tagger) writeResult(a *Args) error {
 	return nil
 }
 
+// Struct Filter ...
+type Filter struct{}
+
+func extractDhlabId(s string) (int, error) {
+	start, err := regexp.Compile("^/.*/")
+	if err != nil {
+		return 0, errors.New(fmt.Sprintf("Error in regexp.Compile():\n%v\n", err))
+	}
+	end, err := regexp.Compile("-.*$")
+	if err != nil {
+		return 0, errors.New(fmt.Sprintf("Error in regexp.Compile():\n%v\n", err))
+	}
+
+	pre := start.ReplaceAllLiteralString(s, "")
+	suf := end.ReplaceAllLiteralString(pre, "")
+
+	id, err := strconv.Atoi(suf)
+	if err != nil {
+		return 0, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
+	}
+
+	return id, nil
+}
+
+func matching(taggedEntry *TaggedEntry, conf *Conf, dhlabId int) []MatchingEntry {
+	var matching []MatchingEntry
+
+	for _, lemma := range conf.Lemmas {
+		for _, word := range lemma.Words {
+			for _, taggedWord := range taggedEntry.TaggedWords {
+				if taggedWord.Lemma == lemma.Lemma &&
+					taggedWord.Word == word.Form &&
+					sets.New(taggedWord.Tags...).IsSuperset(
+						sets.New(word.Morphology...)) {
+					matching = append(matching, MatchingEntry{
+						Attribute: conf.Attribute,
+						Form:      taggedWord.Word,
+						Lang:      taggedEntry.Lang,
+						Lemma:     taggedWord.Lemma,
+						Value:     word.Value,
+						DhlabId:   dhlabId})
+				}
+			}
+		}
+	}
+
+	return matching
+}
+
 func (t *Filter) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "filteringFinished.txt"))
 }
 
+func (f *Filter) run(a *Args, conf *Conf) error {
+	var matchingWords []MatchingEntry
+	var tagged []string
+	dir := filepath.Join(a.Directory, "tagged")
+
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.ReadDir():\n%v\n", err))
+	}
+
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".tagged") {
+			tagged = append(tagged, filepath.Join(dir, f.Name()))
+		}
+	}
+
+	for _, t := range tagged {
+		f, err := os.Open(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
+				t, err))
+		}
+		defer f.Close()
+
+		dhlabId, err := extractDhlabId(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
+		}
+
+		s := bufio.NewScanner(f)
+		for s.Scan() {
+			taggedEntry := TaggedEntry{}
+			err = json.Unmarshal(s.Bytes(), &taggedEntry)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+			}
+
+			matchingWords = append(matchingWords, matching(&taggedEntry, conf, dhlabId)...)
+		}
+
+		if err = s.Err(); err != nil {
+			return errors.New(fmt.Sprintf("Error while scanning file %s:\n%v\n",
+				t, err))
+		}
+
+	}
+
+	for _, m := range matchingWords {
+		fmt.Println(m)
+	}
+
+	return nil
 }
 
+func (t *Filter) writeResult(a *Args) error {
+	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0664)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+	}
+
+	return nil
+}
+
+// Struct Collate ...
+type Collate struct{}
+
+func (c *Collate) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "filteringFinished.txt"))
+}
+
+func (f *Collate) run(a *Args, conf *Conf) error {
+	var matchingWords []MatchingEntry
+	var tagged []string
+	dir := filepath.Join(a.Directory, "tagged")
+
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.ReadDir():\n%v\n", err))
+	}
+
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".tagged") {
+			tagged = append(tagged, filepath.Join(dir, f.Name()))
+		}
+	}
+
+	for _, t := range tagged {
+		f, err := os.Open(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
+				t, err))
+		}
+		defer f.Close()
+
+		dhlabId, err := extractDhlabId(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
+		}
+
+		s := bufio.NewScanner(f)
+		for s.Scan() {
+			taggedEntry := TaggedEntry{}
+			err = json.Unmarshal(s.Bytes(), &taggedEntry)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+			}
+
+			matchingWords = append(matchingWords, matching(&taggedEntry, conf, dhlabId)...)
+		}
+
+		if err = s.Err(); err != nil {
+			return errors.New(fmt.Sprintf("Error while scanning file %s:\n%v\n",
+				t, err))
+		}
+
+	}
+
+	for _, m := range matchingWords {
+		fmt.Println(m)
+	}
+
+	return nil
+}
+
+func (c *Collate) writeResult(a *Args) error {
+	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0664)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+	}
+
+	return nil
+}
 
 // readArgs reads arguments (from a previous run) from path and stores them in a.
 func readArgs(path string, a *Args) error {
@@ -584,11 +790,14 @@ func concordanceLines(p string) ([]string, error) {
 
 func main() {
 	var args Args = Args{}
+
+	var corp Corpus = Corpus{}
 	var conc Concordance = Concordance{}
 	var conf Conf = Conf{}
-	var corp Corpus = Corpus{}
+	var filter Filter = Filter{}
+	var tag Tag = Tag{}
+	var coll Collate = Collate{}
 	var err error
-	var tag Tagger = Tagger{}
 
 	flag.Parse()
 
@@ -659,19 +868,13 @@ func main() {
 	}
 
 	// TODO: Consider freeing these objects manually.
-	stages := []WorkflowStage{&corp, &conc, &tag}
+	stages := []WorkflowStage{&corp, &conc, &tag, &filter, &coll}
 	for _, s := range stages {
 		if !s.finished(&args) {
 
 			err = s.run(&args, &conf)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error in %T.Run():\n%v\n", s, err)
-				os.Exit(1)
-			}
-
-			err = s.writeResult(&args)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error in %T.writeResult():\n%v\n", s, err)
 				os.Exit(1)
 			}
 		}

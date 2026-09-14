@@ -1,0 +1,4 @@
+fortio.org/sets v1.3.0 h1:UiEtck/ndNM3Tg53mJu3I7Zz1ED8+YSQLtPKSjd8LTE=
+fortio.org/sets v1.3.0/go.mod h1:y8fFzm4bPTk3Qfr/tF3Xz7oWwgzpy++QdkwURKhNbP4=
+k8s.io/apimachinery v0.37.0 h1:Np2AbDtf8x6RDHiD8T9LbKJ9gaegeVNa8yNm5FuGKm0=
+k8s.io/apimachinery v0.37.0/go.mod h1:RN3nhprFSCxOi5Selxd7oMTXOe/c+ZbcE7Im+TS2zkE=
