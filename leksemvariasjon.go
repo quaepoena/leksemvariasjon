@@ -385,7 +385,7 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 	var conc *Concordance
 
 	p := filepath.Join(a.Directory, "tagged")
-	err := os.Mkdir(p, 0775)
+	err := os.MkdirAll(p, 0775)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
 	}
