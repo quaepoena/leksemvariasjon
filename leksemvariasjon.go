@@ -9,7 +9,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/csv"
-	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -543,25 +542,6 @@ func (c *Collate) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "output.csv"))
 }
 
-// readArgs reads arguments (from a previous run) from path and stores them in a.
-func readArgs(path string, a *Args) error {
-	var f *os.File
-	var dec *gob.Decoder
-
-	f, err := os.Open(path)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.Open(): %v\n", err))
-	}
-	defer f.Close()
-
-	dec = gob.NewDecoder(f)
-	err = dec.Decode(a)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in dec.Decode(): %v\n", err))
-	}
-
-	return nil
-}
 
 // mkUniqueDir makes a unique output directory for each (non-resumptive) run
 // of the program.
@@ -604,28 +584,6 @@ func copyConfig(dir string, config string) error {
 	_, err = io.Copy(destFile, srcFile)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error on io.Copy(): %v\n", err))
-	}
-
-	return nil
-}
-
-// writeArgs saves the arguments from a to disk in case of a resumptive run.
-func writeArgs(dir string, a *Args) error {
-	var argFile *os.File
-	var e *gob.Encoder
-	var path string
-
-	path = filepath.Join(dir, "args.gob")
-	argFile, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer argFile.Close()
-
-	e = gob.NewEncoder(argFile)
-	err = e.Encode(a)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in e.Encode(): %v\n", err))
 	}
 
 	return nil
@@ -809,9 +767,9 @@ func main() {
 	if resume {
 		// For resumptive runs we read the arguments back from disk and set
 		// the variables accordingly.
-		err = readArgs(filepath.Join(directory, "args.gob"), args)
+		err = fileToStruct(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in readArgs():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
+			fmt.Fprintf(os.Stderr, "Error in fileToStruct():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
 			os.Exit(1)
 		}
 
@@ -836,11 +794,14 @@ func main() {
 		// The '-config' flag, which was a path, is changed to the basename.
 		config = filepath.Base(config)
 
-		args = &Args{ConfigFile: config, Directory: directory, Doctype: doctype,
-			From: from, To: to}
-		err = writeArgs(directory, args)
+		args.ConfigFile = config
+		args.Directory = directory
+		args.Doctype = doctype
+		args.From = from
+		args.To = to
+		err = structToFile(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in writeArgs():\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "Error in structToFile():\n%v\n", err)
 			os.Exit(1)
 		}
 	}
