@@ -413,14 +413,8 @@ type MatchingEntry struct {
 type Filter struct{}
 
 func extractDhlabId(s string) (int, error) {
-	start, err := regexp.Compile("^/.*/")
-	if err != nil {
-		return 0, errors.New(fmt.Sprintf("Error in regexp.Compile():\n%v\n", err))
-	}
-	end, err := regexp.Compile("-.*$")
-	if err != nil {
-		return 0, errors.New(fmt.Sprintf("Error in regexp.Compile():\n%v\n", err))
-	}
+	start := regexp.MustCompile("^/.*/")
+	end := regexp.MustCompile("-.*$")
 
 	pre := start.ReplaceAllLiteralString(s, "")
 	suf := end.ReplaceAllLiteralString(pre, "")
