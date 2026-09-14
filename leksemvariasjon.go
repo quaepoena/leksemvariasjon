@@ -589,23 +589,6 @@ func copyConfig(dir string, config string) error {
 	return nil
 }
 
-// loadConf reads the JSON configuration file at path into c.
-func loadConf(path string, c *Conf) error {
-	var data []byte
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.ReadFile(): %v\n", err))
-	}
-
-	err = json.Unmarshal(data, c)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
-	}
-
-	return nil
-}
-
 // fileExists returns true if a given file path exists.
 func fileExists(s string) bool {
 	f, err := os.Open(s)
@@ -806,9 +789,9 @@ func main() {
 		}
 	}
 
-	err = loadConf(filepath.Join(directory, args.ConfigFile), conf)
+	err = fileToStruct(filepath.Join(directory, args.ConfigFile), conf)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error in loadConf():\n%v\n", err)
+		fmt.Fprintf(os.Stderr, "Error in fileToStruct():\n%v\n", err)
 		os.Exit(1)
 	}
 
