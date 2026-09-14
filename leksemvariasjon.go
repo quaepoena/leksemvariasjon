@@ -81,25 +81,6 @@ type WorkflowStage interface {
 	finished(*Args) bool
 }
 
-// Struct TaggedWord ...
-type TaggedWord struct {
-	Word  string   `json:"w"`
-	Tags  []string `json:"t"`
-	Lemma string   `json:"l"`
-}
-
-// Struct TaggedEntry ...
-type TaggedEntry struct {
-	Lang        string
-	TaggedWords []TaggedWord `json:"sent"`
-}
-
-// Struct MatchingEntry ...
-type MatchingEntry struct {
-	Attribute, Form, Lang, Lemma, Value string
-	DhlabId                             int
-}
-
 // Struct CorpusMetadata ...
 type CorpusMetadata struct {
 	Doctype string
@@ -416,6 +397,25 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 
 func (t *Tag) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
+}
+
+// Struct TaggedWord ...
+type TaggedWord struct {
+	Word  string   `json:"w"`
+	Tags  []string `json:"t"`
+	Lemma string   `json:"l"`
+}
+
+// Struct TaggedEntry ...
+type TaggedEntry struct {
+	Lang        string
+	TaggedWords []TaggedWord `json:"sent"`
+}
+
+// Struct MatchingEntry ...
+type MatchingEntry struct {
+	Attribute, Form, Lang, Lemma, Value string
+	DhlabId                             int
 }
 
 // Struct Filter ...
