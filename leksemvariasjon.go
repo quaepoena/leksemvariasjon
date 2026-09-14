@@ -746,18 +746,18 @@ func fileToStruct(p string, s any) error {
 
 	f, err := os.Open(p)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.Open(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
 	}
 	defer f.Close()
 
 	b, err = io.ReadAll(f)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in io.ReadAll():\n%v\n", err))
 	}
 
 	err = json.Unmarshal(b, s)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 	}
 
 	return nil
