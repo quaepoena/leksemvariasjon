@@ -403,14 +403,16 @@ type TaggedEntry struct {
 	TaggedWords []TaggedWord `json:"sent"`
 }
 
-// Struct MatchingEntry ...
-type MatchingEntry struct {
+// Struct MatchingWord ...
+type MatchingWord struct {
 	Attribute, Form, Lang, Lemma, Value string
 	DhlabId                             int
 }
 
 // Struct Filter ...
-type Filter struct{}
+type Filter struct {
+	Words []MatchingWord
+}
 
 func extractDhlabId(s string) (int, error) {
 	start := regexp.MustCompile("^/.*/")
@@ -427,17 +429,19 @@ func extractDhlabId(s string) (int, error) {
 	return id, nil
 }
 
-func matching(taggedEntry *TaggedEntry, conf *Conf, dhlabId int) []MatchingEntry {
-	var matching []MatchingEntry
+func matching(taggedEntry *TaggedEntry, conf *Conf, dhlabId int) []MatchingWord {
+	var matchingWords []MatchingWord
 
 	for _, lemma := range conf.Lemmas {
 		for _, word := range lemma.Words {
 			for _, taggedWord := range taggedEntry.TaggedWords {
+
 				if taggedWord.Lemma == lemma.Lemma &&
 					taggedWord.Word == word.Form &&
 					sets.New(taggedWord.Tags...).IsSuperset(
 						sets.New(word.Morphology...)) {
-					matching = append(matching, MatchingEntry{
+
+					matchingWords = append(matchingWords, MatchingWord{
 						Attribute: conf.Attribute,
 						Form:      taggedWord.Word,
 						Lang:      taggedEntry.Lang,
@@ -449,144 +453,80 @@ func matching(taggedEntry *TaggedEntry, conf *Conf, dhlabId int) []MatchingEntry
 		}
 	}
 
-	return matching
+	return matchingWords
+}
+
+func (fil *Filter) run(a *Args, conf *Conf) error {
+	var tagged []string
+	dir := filepath.Join(a.Directory, "tagged")
+
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.ReadDir():\n%v\n", err))
+	}
+
+	for _, file := range files {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".tagged") {
+			tagged = append(tagged, filepath.Join(dir, file.Name()))
+		}
+	}
+
+	for _, t := range tagged {
+		f, err := os.Open(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
+				t, err))
+		}
+		defer f.Close()
+
+		dhlabId, err := extractDhlabId(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
+		}
+
+		s := bufio.NewScanner(f)
+		for s.Scan() {
+			taggedEntry := TaggedEntry{}
+			err = json.Unmarshal(s.Bytes(), &taggedEntry)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+			}
+
+			fil.Words = append(fil.Words, matching(&taggedEntry, conf, dhlabId)...)
+		}
+
+		if err = s.Err(); err != nil {
+			return errors.New(fmt.Sprintf("Error while scanning file %s:\n%v\n",
+				t, err))
+		}
+
+	}
+
+	for _, m := range fil.Words {
+		fmt.Println(m)
+	}
+
+	err = os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+	}
+
+	return nil
 }
 
 func (t *Filter) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "filteringFinished.txt"))
 }
 
-func (f *Filter) run(a *Args, conf *Conf) error {
-	var matchingEntries []MatchingEntry
-	var tagged []string
-	dir := filepath.Join(a.Directory, "tagged")
-
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.ReadDir():\n%v\n", err))
-	}
-
-	for _, f := range files {
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".tagged") {
-			tagged = append(tagged, filepath.Join(dir, f.Name()))
-		}
-	}
-
-	for _, t := range tagged {
-		f, err := os.Open(t)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
-				t, err))
-		}
-		defer f.Close()
-
-		dhlabId, err := extractDhlabId(t)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
-		}
-
-		s := bufio.NewScanner(f)
-		for s.Scan() {
-			taggedEntry := TaggedEntry{}
-			err = json.Unmarshal(s.Bytes(), &taggedEntry)
-			if err != nil {
-				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
-			}
-
-			matchingEntries = append(matchingEntries, matching(&taggedEntry, conf, dhlabId)...)
-		}
-
-		if err = s.Err(); err != nil {
-			return errors.New(fmt.Sprintf("Error while scanning file %s:\n%v\n",
-				t, err))
-		}
-
-	}
-
-	for _, m := range matchingEntries {
-		fmt.Println(m)
-	}
-
-	return nil
-}
-
-func (t *Filter) writeResult(a *Args) error {
-	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
-	}
-
-	return nil
-}
-
 // Struct Collate ...
 type Collate struct{}
 
-func (c *Collate) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "filteringFinished.txt"))
-}
-
 func (f *Collate) run(a *Args, conf *Conf) error {
-	var matchingWords []MatchingEntry
-	var tagged []string
-	dir := filepath.Join(a.Directory, "tagged")
-
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.ReadDir():\n%v\n", err))
-	}
-
-	for _, f := range files {
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".tagged") {
-			tagged = append(tagged, filepath.Join(dir, f.Name()))
-		}
-	}
-
-	for _, t := range tagged {
-		f, err := os.Open(t)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
-				t, err))
-		}
-		defer f.Close()
-
-		dhlabId, err := extractDhlabId(t)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
-		}
-
-		s := bufio.NewScanner(f)
-		for s.Scan() {
-			taggedEntry := TaggedEntry{}
-			err = json.Unmarshal(s.Bytes(), &taggedEntry)
-			if err != nil {
-				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
-			}
-
-			matchingWords = append(matchingWords, matching(&taggedEntry, conf, dhlabId)...)
-		}
-
-		if err = s.Err(); err != nil {
-			return errors.New(fmt.Sprintf("Error while scanning file %s:\n%v\n",
-				t, err))
-		}
-
-	}
-
-	for _, m := range matchingWords {
-		fmt.Println(m)
-	}
-
 	return nil
 }
 
-func (c *Collate) writeResult(a *Args) error {
-	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
-	}
-
-	return nil
+func (c *Collate) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "output.csv"))
 }
 
 // readArgs reads arguments (from a previous run) from path and stores them in a.
