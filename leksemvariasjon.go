@@ -339,10 +339,6 @@ func dhlabIDs(a *Args) ([]int, error) {
 	return ids, nil
 }
 
-func (conc *Concordance) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "concordance.json"))
-}
-
 func (conc *Concordance) run(a *Args, c *Conf) error {
 	var ids []int
 	var resp *ConcordanceResponse
@@ -379,6 +375,10 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 	return nil
 }
 
+func (conc *Concordance) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "concordance.json"))
+}
+
 // Struct Tag represents running the external tagger.
 // The data it works with is read from and written directly to disk.
 type Tag struct{}
@@ -397,10 +397,6 @@ func writeFilesToBeTagged(conc *Concordance, dir string) error {
 	}
 
 	return nil
-}
-
-func (t *Tag) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
 func (t *Tag) run(a *Args, conf *Conf) error {
@@ -447,6 +443,10 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 	}
 
 	return nil
+}
+
+func (t *Tag) finished(a *Args) bool {
+	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
 // Struct Filter ...
