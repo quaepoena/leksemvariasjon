@@ -565,23 +565,23 @@ func mkUniqueDir(dir string, config string) (string, error) {
 
 // copyConfig copies the configuration file to the newly created output directory.
 func copyConfig(dir string, config string) error {
-	var destPath string
-	var destFile, srcFile *os.File
+	var p string
+	var dst, src *os.File
 
-	srcFile, err := os.Open(config)
+	src, err := os.Open(config)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error on os.Open(): %v\n", err))
 	}
-	defer srcFile.Close()
+	defer src.Close()
 
-	destPath = filepath.Join(dir, filepath.Base(config))
-	destFile, err = os.OpenFile(destPath, os.O_CREATE|os.O_RDWR, 0666)
+	p = filepath.Join(dir, filepath.Base(config))
+	dst, err = os.OpenFile(p, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error on os.OpenFile(): %v\n", err))
 	}
-	defer destFile.Close()
+	defer dst.Close()
 
-	_, err = io.Copy(destFile, srcFile)
+	_, err = io.Copy(dst, src)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error on io.Copy(): %v\n", err))
 	}
