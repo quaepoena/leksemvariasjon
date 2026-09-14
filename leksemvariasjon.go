@@ -381,7 +381,7 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
 	}
 
-	err = fileToStruct(filepath.Join(a.Directory, "corpus.json"), conc)
+	err = fileToStruct(filepath.Join(a.Directory, "concordance.json"), conc)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
 	}
