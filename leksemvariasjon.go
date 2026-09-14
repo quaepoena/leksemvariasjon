@@ -182,7 +182,7 @@ func buildCorpus(resp *CorpusResponse, c *Corpus) error {
 
 func (c *Corpus) run(a *Args, conf *Conf) error {
 	var req []byte
-	var resp *CorpusResponse
+	var resp *CorpusResponse = &CorpusResponse{}
 
 	req, err := buildCorpusRequest(a, conf)
 	if err != nil {
@@ -194,6 +194,7 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in Corpus.buildCorpusResponse():\n%v\n", err))
 	}
 
+	c.DHLabID = make(map[int]CorpusMetadata)
 	err = buildCorpus(resp, c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in buildCorpus():\n%v\n", err))
@@ -760,14 +761,13 @@ func structToFile(p string, s any) error {
 }
 
 func main() {
-	var args Args = Args{}
-
-	var corp Corpus = Corpus{}
-	var conc Concordance = Concordance{}
-	var conf Conf = Conf{}
-	var filter Filter = Filter{}
-	var tag Tag = Tag{}
-	var coll Collate = Collate{}
+	var args *Args = &Args{}
+	var corp *Corpus = &Corpus{}
+	var conc *Concordance = &Concordance{}
+	var conf *Conf = &Conf{}
+	var tag *Tag = &Tag{}
+	var filter *Filter = &Filter{}
+	var coll *Collate = &Collate{}
 	var err error
 
 	flag.Parse()
@@ -796,7 +796,7 @@ func main() {
 	if resume {
 		// For resumptive runs we read the arguments back from disk and set
 		// the variables accordingly.
-		err = readArgs(filepath.Join(directory, "args.gob"), &args)
+		err = readArgs(filepath.Join(directory, "args.gob"), args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error in readArgs():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
 			os.Exit(1)
@@ -823,26 +823,26 @@ func main() {
 		// The '-config' flag, which was a path, is changed to the basename.
 		config = filepath.Base(config)
 
-		args = Args{ConfigFile: config, Directory: directory, Doctype: doctype,
+		args = &Args{ConfigFile: config, Directory: directory, Doctype: doctype,
 			From: from, To: to}
-		err = writeArgs(directory, &args)
+		err = writeArgs(directory, args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error in writeArgs():\n%v\n", err)
 			os.Exit(1)
 		}
 	}
 
-	err = loadConf(filepath.Join(directory, args.ConfigFile), &conf)
+	err = loadConf(filepath.Join(directory, args.ConfigFile), conf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error in loadConf():\n%v\n", err)
 		os.Exit(1)
 	}
 
-	stages := []WorkflowStage{&corp, &conc, &tag, &filter, &coll}
+	stages := []WorkflowStage{corp, conc, tag, filter, coll}
 	for _, s := range stages {
-		if !s.finished(&args) {
+		if !s.finished(args) {
 
-			err = s.run(&args, &conf)
+			err = s.run(args, conf)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error in %T.Run():\n%v\n", s, err)
 				os.Exit(1)
