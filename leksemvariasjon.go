@@ -750,27 +750,6 @@ func csvColumn(p string, c int) ([]any, error) {
 	return fields, nil
 }
 
-func dhlabIDsOld(p string, f int) ([]int, error) {
-	var IDs []int
-
-	s, err := csvColumn(p, f)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in csvColumn():\n%v\n", err))
-	}
-
-	for i := 0; i < len(s); i++ {
-		st := s[i].(string)
-		in, err := strconv.Atoi(st)
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
-		}
-
-		IDs = append(IDs, in)
-	}
-
-	return IDs, nil
-}
-
 // concordanceLines returns each selection of concordance text as a list of strings.
 func concordanceLines(p string) ([]string, error) {
 	var lines []string
