@@ -77,8 +77,8 @@ type Conf struct {
 // Interface WorkflowStage represents the repetitive tasks for each step of the
 // program.
 type WorkflowStage interface {
-	finished(*Args) bool
 	run(*Args, *Conf) error
+	finished(*Args) bool
 }
 
 // Struct TaggedWord ...
@@ -100,14 +100,17 @@ type MatchingEntry struct {
 	DhlabId                             int
 }
 
-// Struct Corpus contains the information we need from the DHLab build_corpus
-// API call.
+// Struct CorpusMetadata ...
+type CorpusMetadata struct {
+	Doctype string
+	Lang    string
+	URN     string
+	Year    int
+}
+
+// Struct Corpus ...
 type Corpus struct {
-	DHLabID map[string]int
-	Doctype map[string]string
-	Langs   map[string]string
-	URN     map[string]string
-	Year    map[string]int
+	DHLabID map[int]CorpusMetadata
 }
 
 // Struct CorpusRequest contains the necessary information for the DHLab
@@ -119,6 +122,16 @@ type CorpusRequest struct {
 	Fulltext string `json:"fulltext"`
 	Lang     string `json:"lang"`
 	Limit    int    `json:"limit"`
+}
+
+// Struct CorpusResponse contains the information we need from the DHLab build_corpus
+// API call.
+type CorpusResponse struct {
+	DHLabID map[string]int
+	Doctype map[string]string
+	Langs   map[string]string
+	URN     map[string]string
+	Year    map[string]int
 }
 
 // buildCorpusRequest builds and returns a JSON object for the DHLab
@@ -149,9 +162,9 @@ func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	return b, nil
 }
 
-// buildCorpus requests data with the parameters from req and populates
+// buildCorpusResponse requests data with the parameters from req and populates
 // c with the response.
-func buildCorpus(req []byte, c *Corpus) error {
+func buildCorpusResponse(req []byte, c *CorpusResponse) error {
 	var uri = DHLabAPI + "build_corpus"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -173,87 +186,52 @@ func buildCorpus(req []byte, c *Corpus) error {
 	return nil
 }
 
-func (c *Corpus) populateRecord(s string) (fields []string) {
-	fields = append(fields, strconv.Itoa(c.DHLabID[s]))
-	fields = append(fields, c.Doctype[s])
-	fields = append(fields, c.Langs[s])
-	fields = append(fields, c.URN[s])
-	fields = append(fields, strconv.Itoa(c.Year[s]))
-
-	return
-}
-
-// writeDhlabResult writes a struct of information from DHLab to disk as a CSV.
-func writeDhlabResult(c *Corpus, header []string, path string, ids map[string]int) error {
-	var records [][]string
-
-	records = append(records, header)
-	for key := range ids {
-		records = append(records, c.populateRecord(key))
-	}
-
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer f.Close()
-
-	wr := csv.NewWriter(f)
-	err = wr.WriteAll(records)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+// buildCorpus ...
+func buildCorpus(resp *CorpusResponse, c *Corpus) error {
+	for i, v := range resp.DHLabID {
+		c.DHLabID[v] = CorpusMetadata{
+			Doctype: resp.Doctype[i],
+			Lang:    resp.Langs[i],
+			URN:     resp.URN[i],
+			Year:    resp.Year[i]}
 	}
 
 	return nil
 }
 
-// writeCsv
-func writeCsv(rows [][]string, path string) error {
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
-	}
-	defer f.Close()
+func (c *Corpus) run(a *Args, conf *Conf) error {
+	var req []byte
+	var resp *CorpusResponse
 
-	wr := csv.NewWriter(f)
-	err = wr.WriteAll(rows)
+	req, err := buildCorpusRequest(a, conf)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in Corpus.buildRequest():\n%v\n", err))
+	}
+
+	err = buildCorpusResponse(req, resp)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in Corpus.buildCorpusResponse():\n%v\n", err))
+	}
+
+	err = buildCorpus(resp, c)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in buildCorpus():\n%v\n", err))
+	}
+
+	b, err := json.Marshal(c)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
+	}
+	err = os.WriteFile(filepath.Join(a.Directory, "corpus.json"), b, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile() with corpus.json:\n%v\n", err))
 	}
 
 	return nil
 }
 
 func (c *Corpus) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "corpus.csv"))
-}
-
-func (c *Corpus) run(a *Args, conf *Conf) error {
-	req, err := buildCorpusRequest(a, conf)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.buildRequest():\n%v\n", err))
-	}
-
-	err = buildCorpus(req, c)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.buildCorpus():\n%v\n", err))
-	}
-
-	header := []string{"dhlabid", "doctype", "lang", "urn", "year"}
-	path := filepath.Join(a.Directory, "corpus.csv")
-	err = writeDhlabResult(c, header, path, c.DHLabID)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.WriteResult():\n%v\n", err))
-	}
-
-	return nil
-}
-
-// Struct Concordance contains the information we need from the DHLab conc
-// API call.
-type Concordance struct {
-	DocID map[string]int
-	Conc  map[string]string
+	return fileExists(filepath.Join(a.Directory, "corpus.json"))
 }
 
 // Struct ConcordanceRequest contains the necessary information for the DHLab
@@ -264,6 +242,18 @@ type ConcordanceRequest struct {
 	Limit          int    `json:"limit"`
 	Query          string `json:"query"`
 	Window         int    `json:"window"`
+}
+
+// Struct ConcordanceResponse contains the information we need from the DHLab conc
+// API call.
+type ConcordanceResponse struct {
+	DocID map[string]int
+	Conc  map[string]string
+}
+
+// Struct Concordance ...
+type Concordance struct {
+	Lines map[int][]string
 }
 
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
@@ -291,9 +281,9 @@ func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	return b, nil
 }
 
-// buildConcordance requests data with the parameters from req and populates
+// buildConcordanceResponse requests data with the parameters from req and populates
 // c with the result.
-func buildConcordance(req []byte, c *Concordance) error {
+func buildConcordanceResponse(req []byte, c *ConcordanceResponse) error {
 	var uri = DHLabAPI + "conc"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -315,27 +305,61 @@ func buildConcordance(req []byte, c *Concordance) error {
 	return nil
 }
 
-func writeFilesToBeTagged(c *Concordance, p string) error {
+func writeFilesToBeTagged(c *ConcordanceResponse, p string) error {
 	for key := range c.DocID {
 		id := c.DocID[key]
 		conc := c.Conc[key]
 
 		os.WriteFile(filepath.Join(p, strconv.Itoa(id)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10)),
-			[]byte(conc),
-			0664)
+			[]byte(conc), 0666)
 	}
 
 	return nil
 }
 
+func dhlabIDs(a *Args) ([]int, error) {
+	var ids []int
+	var b []byte
+	var c *Corpus
+
+	f, err := os.Open(filepath.Join(a.Directory, "corpus.json"))
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
+	}
+	defer f.Close()
+
+	r := bufio.NewReader(f)
+	for {
+		_, err = r.Read(b)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in bufio.Read()():\n%v\n", err))
+		}
+	}
+
+	err = json.Unmarshal(b, c)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+	}
+
+	for i := range c.DHLabID {
+		ids = append(ids, i)
+	}
+
+	return ids, nil
+}
+
 func (conc *Concordance) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "concordanceWritten.txt"))
+	return fileExists(filepath.Join(a.Directory, "concordance.json"))
 }
 
 func (conc *Concordance) run(a *Args, c *Conf) error {
 	var IDs []int
+	var resp *ConcordanceResponse
 
-	IDs, err := dhlabIDs(filepath.Join(a.Directory, "corpus.csv"), 0)
+	IDs, err := dhlabIDs(a)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
 	}
@@ -349,15 +373,15 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in ConcordanceRequest():\n%v\n", err))
 	}
 
-	err = buildConcordance(req, conc)
+	err = buildConcordanceResponse(req, resp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in BuildConcordance():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in BuildConcordanceResponse():\n%v\n", err))
 	}
 
 	return nil
 }
 
-func (c *Concordance) writeResult(a *Args) error {
+func (c *ConcordanceResponse) writeResult(a *Args) error {
 	p := filepath.Join(a.Directory, "tagged")
 	err := os.Mkdir(p, 0775)
 	if err != nil {
@@ -369,7 +393,7 @@ func (c *Concordance) writeResult(a *Args) error {
 		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
 	}
 
-	err = os.WriteFile(filepath.Join(a.Directory, "concordanceWritten.txt"), []byte{}, 0664)
+	err = os.WriteFile(filepath.Join(a.Directory, "concordanceWritten.txt"), []byte{}, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
 	}
@@ -398,7 +422,7 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 }
 
 func (t *Tag) writeResult(a *Args) error {
-	err := os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0664)
+	err := os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
 	}
@@ -514,7 +538,7 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 }
 
 func (t *Filter) writeResult(a *Args) error {
-	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0664)
+	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
 	}
@@ -584,7 +608,7 @@ func (f *Collate) run(a *Args, conf *Conf) error {
 }
 
 func (c *Collate) writeResult(a *Args) error {
-	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0664)
+	err := os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
 	}
@@ -738,7 +762,7 @@ func csvColumn(p string, c int) ([]any, error) {
 	return fields, nil
 }
 
-func dhlabIDs(p string, f int) ([]int, error) {
+func dhlabIDsOld(p string, f int) ([]int, error) {
 	var IDs []int
 
 	s, err := csvColumn(p, f)
@@ -786,6 +810,23 @@ func concordanceLines(p string) ([]string, error) {
 	}
 
 	return lines, nil
+}
+
+// writeCsv
+func writeCsv(rows [][]string, path string) error {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
+	}
+	defer f.Close()
+
+	wr := csv.NewWriter(f)
+	err = wr.WriteAll(rows)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+	}
+
+	return nil
 }
 
 func main() {
