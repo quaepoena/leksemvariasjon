@@ -424,12 +424,11 @@ type TaggedEntry struct {
 // Struct MatchingWord ...
 type MatchingWord struct {
 	Attribute, Form, Lang, Lemma, Value string
-	DhlabId                             int
 }
 
 // Struct Filter ...
 type Filter struct {
-	Words []MatchingWord
+	Words map[int][]MatchingWord
 }
 
 func extractDhlabId(s string) (int, error) {
@@ -442,34 +441,32 @@ func extractDhlabId(s string) (int, error) {
 	return id, nil
 }
 
-func matching(taggedEntry *TaggedEntry, conf *Conf, dhlabId int) []MatchingWord {
-	var matchingWords []MatchingWord
-
+func insertMatching(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) error {
 	for _, lemma := range conf.Lemmas {
 		for _, word := range lemma.Words {
-			for _, taggedWord := range taggedEntry.TaggedWords {
+			for _, taggedWord := range entry.TaggedWords {
 
 				if taggedWord.Lemma == lemma.Lemma &&
 					taggedWord.Word == word.Form &&
 					sets.New(taggedWord.Tags...).IsSuperset(
 						sets.New(word.Morphology...)) {
 
-					matchingWords = append(matchingWords, MatchingWord{
+					fil.Words[dhlabId] = append(fil.Words[dhlabId], MatchingWord{
 						Attribute: conf.Attribute,
 						Form:      taggedWord.Word,
-						Lang:      taggedEntry.Lang,
+						Lang:      entry.Lang,
 						Lemma:     taggedWord.Lemma,
-						Value:     word.Value,
-						DhlabId:   dhlabId})
+						Value:     word.Value})
 				}
 			}
 		}
 	}
 
-	return matchingWords
+	return nil
 }
 
 func (fil *Filter) run(a *Args, conf *Conf) error {
+	fil.Words = make(map[int][]MatchingWord)
 	var tagged []string
 	dir := filepath.Join(a.Directory, "tagged")
 
@@ -499,13 +496,16 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 
 		s := bufio.NewScanner(f)
 		for s.Scan() {
-			taggedEntry := TaggedEntry{}
-			err = json.Unmarshal(s.Bytes(), &taggedEntry)
+			entry := &TaggedEntry{}
+			err = json.Unmarshal(s.Bytes(), &entry)
 			if err != nil {
 				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 			}
 
-			fil.Words = append(fil.Words, matching(&taggedEntry, conf, dhlabId)...)
+			err = insertMatching(entry, conf, dhlabId, fil)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error in insertMatching():\n%v\n", err))
+			}
 		}
 
 		if err = s.Err(); err != nil {
@@ -515,13 +515,9 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 
 	}
 
-	for _, m := range fil.Words {
-		fmt.Println(m)
-	}
-
-	err = os.WriteFile(filepath.Join(a.Directory, "filteringFinished.txt"), []byte{}, 0666)
+	err = structToFile(filepath.Join(a.Directory, "filter.json"), fil)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in structToFile() with filter.json:\n%v\n", err))
 	}
 
 	return nil
