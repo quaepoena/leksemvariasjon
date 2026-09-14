@@ -365,11 +365,11 @@ func (conc *Concordance) finished(a *Args) bool {
 // The data it works with is read from and written directly to disk.
 type Tag struct{}
 
-func writeFilesToBeTagged(conc *Concordance, dir string) error {
+func writeFilesToBeTagged(conc *Concordance, p string) error {
 	for i, v := range conc.Lines {
 		for _, line := range v {
-			name := filepath.Join(dir,
-				strconv.Itoa(i)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10))
+			name := filepath.Join(p,
+				strconv.Itoa(i)+"-"+strconv.FormatInt(time.Now().UTC().UnixMicro(), 10))
 			err := os.WriteFile(name, []byte(line), 0666)
 			if err != nil {
 				return errors.New(fmt.Sprintf("Error in os.WriteFile() with path: %s.\n%v\n", name, err))
@@ -630,7 +630,7 @@ func mkUniqueDir(dir string, config string) (string, error) {
 	var base, newDir, tStamp string
 	var t time.Time
 
-	t = time.Now()
+	t = time.Now().UTC()
 	tStamp = t.Format(time.DateTime)
 	base = filepath.Base(config)
 	newDir = filepath.Join(dir,
