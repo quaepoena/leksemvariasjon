@@ -307,29 +307,11 @@ func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 
 func dhlabIDs(a *Args) ([]int, error) {
 	var ids []int
-	var b []byte
 	var corp *Corpus
 
-	f, err := os.Open(filepath.Join(a.Directory, "corpus.json"))
+	err := fileToStruct(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
-	}
-	defer f.Close()
-
-	r := bufio.NewReader(f)
-	for {
-		_, err = r.Read(b)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in bufio.Read()():\n%v\n", err))
-		}
-	}
-
-	err = json.Unmarshal(b, corp)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
 	}
 
 	for i := range corp.DHLabID {
@@ -408,20 +390,9 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
 	}
 
-	f, err := os.Open(filepath.Join(a.Directory, "concordance.json"))
+	err = fileToStruct(filepath.Join(a.Directory, "corpus.json"), conc)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.Open(): %v\n", err))
-	}
-
-	r := bufio.NewReader(f)
-	b, err := io.ReadAll(r)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
-	}
-
-	err = json.Unmarshal(b, conc)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+		return errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
 	}
 
 	err = writeFilesToBeTagged(conc, p)
@@ -429,9 +400,7 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
 	}
 
-	p = filepath.Join(a.Directory, "tagged")
 	cmd := exec.Command("python", "./tagger.py", p, p)
-
 	err = cmd.Run()
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in Cmd.Run():\n%v\n", err))
@@ -843,6 +812,29 @@ func writeCsv(rows [][]string, path string) error {
 	err = wr.WriteAll(rows)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+	}
+
+	return nil
+}
+
+// fileToStruct
+func fileToStruct(p string, s any) error {
+	var b []byte
+
+	f, err := os.Open(p)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.Open(): %v\n", err))
+	}
+	defer f.Close()
+
+	b, err = io.ReadAll(f)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
+	}
+
+	err = json.Unmarshal(b, s)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
 	}
 
 	return nil
