@@ -600,65 +600,6 @@ func fileExists(s string) bool {
 	return true
 }
 
-func csvColumn(p string, c int) ([]any, error) {
-	var fields []any
-
-	f, err := os.Open(p)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	_, err = r.Read() // Discard the header.
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
-	}
-
-	for {
-		rec, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
-		}
-
-		fields = append(fields, rec[c])
-	}
-
-	return fields, nil
-}
-
-// concordanceLines returns each selection of concordance text as a list of strings.
-func concordanceLines(p string) ([]string, error) {
-	var lines []string
-
-	f, err := os.Open(p)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	for {
-		rec, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Error in csv.Read():\n%v\n", err))
-		}
-		if rec[2] == "text" {
-			continue
-		}
-
-		lines = append(lines, rec[2])
-	}
-
-	return lines, nil
-}
-
 // writeCsv
 func writeCsv(rows [][]string, path string) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
