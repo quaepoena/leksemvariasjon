@@ -383,13 +383,17 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 // The data it works with is read from and written directly to disk.
 type Tag struct{}
 
-func writeFilesToBeTagged(c *ConcordanceResponse, p string) error {
-	for key := range c.DocID {
-		id := c.DocID[key]
-		conc := c.Conc[key]
+func writeFilesToBeTagged(conc *Concordance, dir string) error {
+	for i, v := range conc.Lines {
+		for _, line := range v {
+			name := filepath.Join(dir,
+				strconv.Itoa(i)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10))
+			err := os.WriteFile(name, []byte(line), 0666)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error in os.WriteFile() with path: %s.\n%v\n", name, err))
+			}
+		}
 
-		os.WriteFile(filepath.Join(p, strconv.Itoa(id)+"-"+strconv.FormatInt(time.Now().UnixMicro(), 10)),
-			[]byte(conc), 0666)
 	}
 
 	return nil
@@ -400,21 +404,33 @@ func (t *Tag) finished(a *Args) bool {
 }
 
 func (t *Tag) run(a *Args, conf *Conf) error {
+	var conc *Concordance
+
 	p := filepath.Join(a.Directory, "tagged")
 	err := os.Mkdir(p, 0775)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
 	}
 
-	var resp *ConcordanceResponse
-	err = writeFilesToBeTagged(resp, p)
+	f, err := os.Open(filepath.Join(a.Directory, "concordance.json"))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in os.Open(): %v\n", err))
 	}
 
-	err = os.WriteFile(filepath.Join(a.Directory, "concordanceWritten.txt"), []byte{}, 0666)
+	r := bufio.NewReader(f)
+	b, err := io.ReadAll(r)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in io.ReadAll(): %v\n", err))
+	}
+
+	err = json.Unmarshal(b, conc)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+	}
+
+	err = writeFilesToBeTagged(conc, p)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
 	}
 
 	p = filepath.Join(a.Directory, "tagged")
@@ -430,10 +446,6 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
 	}
 
-	return nil
-}
-
-func (t *Tag) writeResult(a *Args) error {
 	return nil
 }
 
