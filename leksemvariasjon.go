@@ -908,7 +908,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: Consider freeing these objects manually.
 	stages := []WorkflowStage{&corp, &conc, &tag, &filter, &coll}
 	for _, s := range stages {
 		if !s.finished(&args) {
