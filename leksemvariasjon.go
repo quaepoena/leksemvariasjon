@@ -199,13 +199,9 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in buildCorpus():\n%v\n", err))
 	}
 
-	b, err := json.Marshal(c)
+	err = structToFile(filepath.Join(a.Directory, "corpus.json"), c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
-	}
-	err = os.WriteFile(filepath.Join(a.Directory, "corpus.json"), b, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile() with corpus.json:\n%v\n", err))
 	}
 
 	return nil
@@ -325,14 +321,9 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in BuildConcordanceResponse():\n%v\n", err))
 	}
 
-	b, err := json.Marshal(conc)
+	err = structToFile(filepath.Join(a.Directory, "concordance.json"), conc)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
-	}
-
-	err = os.WriteFile(filepath.Join(a.Directory, "concordance.json"), b, 0666)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile() with concordance.json:\n%v\n", err))
 	}
 
 	return nil
@@ -814,6 +805,21 @@ func fileToStruct(p string, s any) error {
 	err = json.Unmarshal(b, s)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Unmarshal(): %v\n", err))
+	}
+
+	return nil
+}
+
+// structToFile
+func structToFile(p string, s any) error {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
+	}
+
+	err = os.WriteFile(p, b, 0666)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in os.WriteFile() with %s:\n%v\n", p, err))
 	}
 
 	return nil
