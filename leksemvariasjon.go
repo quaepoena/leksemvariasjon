@@ -235,6 +235,22 @@ type Concordance struct {
 	Lines map[int][]string
 }
 
+func dhlabIDs(a *Args) ([]int, error) {
+	var ids []int
+	var corp *Corpus = &Corpus{}
+
+	err := fileToStruct(filepath.Join(a.Directory, "corpus.json"), corp)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
+	}
+
+	for i := range corp.DHLabID {
+		ids = append(ids, i)
+	}
+
+	return ids, nil
+}
+
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -284,25 +300,21 @@ func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	return nil
 }
 
-func dhlabIDs(a *Args) ([]int, error) {
-	var ids []int
-	var corp *Corpus
+// buildConcordance requests data with the parameters from req and populates
+// concResp with the result.
+func buildConcordance(concResp *ConcordanceResponse, conc *Concordance) error {
+	conc.Lines = make(map[int][]string)
 
-	err := fileToStruct(filepath.Join(a.Directory, "corpus.json"), corp)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
+	for i, v := range concResp.DocID {
+		conc.Lines[v] = append(conc.Lines[v], concResp.Conc[i])
 	}
 
-	for i := range corp.DHLabID {
-		ids = append(ids, i)
-	}
-
-	return ids, nil
+	return nil
 }
 
 func (conc *Concordance) run(a *Args, c *Conf) error {
 	var ids []int
-	var resp *ConcordanceResponse
+	var resp *ConcordanceResponse = &ConcordanceResponse{}
 
 	ids, err := dhlabIDs(a)
 	if err != nil {
@@ -321,6 +333,11 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 	err = buildConcordanceResponse(req, resp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in BuildConcordanceResponse():\n%v\n", err))
+	}
+
+	err = buildConcordance(resp, conc)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in buildConcordance():\n%v\n", err))
 	}
 
 	err = structToFile(filepath.Join(a.Directory, "concordance.json"), conc)
@@ -356,7 +373,7 @@ func writeFilesToBeTagged(conc *Concordance, p string) error {
 }
 
 func (t *Tag) run(a *Args, conf *Conf) error {
-	var conc *Concordance
+	var conc *Concordance = &Concordance{}
 
 	p := filepath.Join(a.Directory, "tagged")
 	err := os.MkdirAll(p, 0775)
