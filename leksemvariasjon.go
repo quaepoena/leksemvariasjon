@@ -457,7 +457,7 @@ func (t *Filter) finished(a *Args) bool {
 }
 
 func (f *Filter) run(a *Args, conf *Conf) error {
-	var matchingWords []MatchingEntry
+	var matchingEntries []MatchingEntry
 	var tagged []string
 	dir := filepath.Join(a.Directory, "tagged")
 
@@ -493,7 +493,7 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 			}
 
-			matchingWords = append(matchingWords, matching(&taggedEntry, conf, dhlabId)...)
+			matchingEntries = append(matchingEntries, matching(&taggedEntry, conf, dhlabId)...)
 		}
 
 		if err = s.Err(); err != nil {
@@ -503,7 +503,7 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 
 	}
 
-	for _, m := range matchingWords {
+	for _, m := range matchingEntries {
 		fmt.Println(m)
 	}
 
