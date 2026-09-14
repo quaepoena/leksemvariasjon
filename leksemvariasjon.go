@@ -169,6 +169,8 @@ func buildCorpusResponse(req []byte, c *CorpusResponse) error {
 
 // buildCorpus ...
 func buildCorpus(resp *CorpusResponse, c *Corpus) error {
+	c.DHLabID = make(map[int]CorpusMetadata)
+
 	for i, v := range resp.DHLabID {
 		c.DHLabID[v] = CorpusMetadata{
 			Doctype: resp.Doctype[i],
@@ -194,7 +196,6 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in Corpus.buildCorpusResponse():\n%v\n", err))
 	}
 
-	c.DHLabID = make(map[int]CorpusMetadata)
 	err = buildCorpus(resp, c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in buildCorpus():\n%v\n", err))
