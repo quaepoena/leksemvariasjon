@@ -537,6 +537,22 @@ type Collate struct {
 	Collations []Collation
 }
 
+func buildRecord(coll *Collation) []string {
+	var fields []string
+
+	fields = append(fields, strconv.Itoa(coll.DhlabId))
+	fields = append(fields, coll.URN)
+	fields = append(fields, coll.Doctype)
+	fields = append(fields, strconv.Itoa(coll.Year))
+	fields = append(fields, coll.Form)
+	fields = append(fields, coll.Lemma)
+	fields = append(fields, coll.Value)
+	fields = append(fields, coll.LangDhlab)
+	fields = append(fields, coll.LangId)
+
+	return fields
+}
+
 func (coll *Collate) run(a *Args, conf *Conf) error {
 	var corp *Corpus = &Corpus{}
 	var fil *Filter = &Filter{}
@@ -571,12 +587,24 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in marshal() with collate.json:\n%v\n", err))
 	}
 
+	var records [][]string
+	header := []string{"dhlabid", "urn", "doctype", "year", "form", "lemma",
+		"value", "lang_dhlab", "lang_id"}
+	records = append(records, header)
+	for _, c := range coll.Collations {
+		records = append(records, buildRecord(&c))
+	}
+
+	err = writeCsv(filepath.Join(a.Directory, "collate.csv"), records)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in writeCsv():\n%v\n", err))
+	}
 
 	return nil
 }
 
 func (c *Collate) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "output.csv"))
+	return fileExists(filepath.Join(a.Directory, "collate.csv"))
 }
 
 
@@ -638,7 +666,7 @@ func fileExists(s string) bool {
 }
 
 // writeCsv
-func writeCsv(rows [][]string, path string) error {
+func writeCsv(path string, rows [][]string) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
