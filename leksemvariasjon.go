@@ -423,7 +423,7 @@ type TaggedEntry struct {
 
 // Struct MatchingWord ...
 type MatchingWord struct {
-	Attribute, Form, Lang, Lemma, Value string
+	Form, Lang, Lemma, Value string
 }
 
 // Struct Filter ...
@@ -452,11 +452,10 @@ func insertMatching(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) er
 						sets.New(word.Morphology...)) {
 
 					fil.Words[dhlabId] = append(fil.Words[dhlabId], MatchingWord{
-						Attribute: conf.Attribute,
-						Form:      taggedWord.Word,
-						Lang:      entry.Lang,
-						Lemma:     taggedWord.Lemma,
-						Value:     word.Value})
+						Form:  taggedWord.Word,
+						Lang:  entry.Lang,
+						Lemma: taggedWord.Lemma,
+						Value: word.Value})
 				}
 			}
 		}
