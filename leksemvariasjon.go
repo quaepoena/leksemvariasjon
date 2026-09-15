@@ -523,7 +523,7 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 }
 
 func (t *Filter) finished(a *Args) bool {
-	return fileExists(filepath.Join(a.Directory, "filtering.json"))
+	return fileExists(filepath.Join(a.Directory, "filter.json"))
 }
 
 // Struct Collation ...
