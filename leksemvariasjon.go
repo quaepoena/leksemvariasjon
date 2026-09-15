@@ -481,17 +481,17 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 	}
 
 	for _, t := range tagged {
+		dhlabId, err := extractDhlabId(t)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
+		}
+
 		f, err := os.Open(t)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
 				t, err))
 		}
 		defer f.Close()
-
-		dhlabId, err := extractDhlabId(t)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
-		}
 
 		s := bufio.NewScanner(f)
 		for s.Scan() {
@@ -760,7 +760,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error in unmarshal():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
 			os.Exit(1)
 		}
-
 	} else {
 		// For non-resumptive runs we need to 1) create a unique directory,
 		// 2) copy the arguments and JSON config file thither, and 3) set
@@ -799,7 +798,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error in unmarshal():\n%v\n", err)
 		os.Exit(1)
 	}
-
 	stages := []WorkflowStage{corp, conc, tag, filter, coll}
 	for _, s := range stages {
 		if !s.finished(args) {
