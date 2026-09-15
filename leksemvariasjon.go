@@ -546,7 +546,7 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in fileToStruct() with filter.json:\n%v\n", err))
 	}
 
-	err = fileToStruct(filepath.Join(a.Directory, "corpus.json"), fil)
+	err = fileToStruct(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in fileToStruct() with corpus.json:\n%v\n", err))
 	}
