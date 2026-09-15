@@ -526,10 +526,52 @@ func (t *Filter) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "filtering.json"))
 }
 
-// Struct Collate ...
-type Collate struct{}
+// Struct Collation ...
+type Collation struct {
+	DhlabId, Year                                       int
+	Doctype, Form, Lemma, LangDhlab, LangId, URN, Value string
+}
 
-func (f *Collate) run(a *Args, conf *Conf) error {
+// Struct Collate ...
+type Collate struct {
+	Collations []Collation
+}
+
+func (coll *Collate) run(a *Args, conf *Conf) error {
+	var corp *Corpus = &Corpus{}
+	var fil *Filter = &Filter{}
+
+	err := fileToStruct(filepath.Join(a.Directory, "filter.json"), fil)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in fileToStruct() with filter.json:\n%v\n", err))
+	}
+
+	err = fileToStruct(filepath.Join(a.Directory, "corpus.json"), fil)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in fileToStruct() with corpus.json:\n%v\n", err))
+	}
+
+	for id, words := range fil.Words {
+		for _, word := range words {
+			coll.Collations = append(coll.Collations, Collation{
+				DhlabId:   id,
+				Form:      word.Form,
+				Lemma:     word.Lemma,
+				LangDhlab: word.Lang,
+				Value:     word.Value,
+				Doctype:   corp.DHLabID[id].Doctype,
+				LangId:    corp.DHLabID[id].Lang,
+				URN:       corp.DHLabID[id].URN,
+				Year:      corp.DHLabID[id].Year})
+		}
+	}
+
+	err = structToFile(filepath.Join(a.Directory, "collate.json"), coll)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in structToFile() with collate.json:\n%v\n", err))
+	}
+
+
 	return nil
 }
 
