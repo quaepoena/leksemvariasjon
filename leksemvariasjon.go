@@ -130,7 +130,7 @@ func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	req.Doctype = a.Doctype
 	req.FromYear = a.From
 	req.ToYear = a.To + 1 // "to_year" on the server side is exclusive.
-	req.Limit = 10        // TODO: Change after testing.
+	req.Limit = 999999
 	req.Fulltext = strings.Join(words, " OR ")
 	req.Lang = c.Language
 
@@ -263,7 +263,7 @@ func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 
 	req.DHLabIDs = ids
 	req.HTMLFormatting = false
-	req.Limit = 10 // TODO: Change after testing.
+	req.Limit = 999999
 	req.Query = strings.Join(words, " OR ")
 	req.Window = 25
 
@@ -606,7 +606,6 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 func (c *Collate) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "collate.csv"))
 }
-
 
 // mkUniqueDir makes a unique output directory for each (non-resumptive) run
 // of the program.
