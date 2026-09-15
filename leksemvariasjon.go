@@ -200,7 +200,7 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in buildCorpus():\n%v\n", err))
 	}
 
-	err = structToFile(filepath.Join(a.Directory, "corpus.json"), c)
+	err = marshal(filepath.Join(a.Directory, "corpus.json"), c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
 	}
@@ -238,9 +238,9 @@ func dhlabIDs(a *Args) ([]int, error) {
 	var ids []int
 	var corp *Corpus = &Corpus{}
 
-	err := fileToStruct(filepath.Join(a.Directory, "corpus.json"), corp)
+	err := unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("Error in unmarshal():\n%v\n", err))
 	}
 
 	for i := range corp.DHLabID {
@@ -339,7 +339,7 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in buildConcordance():\n%v\n", err))
 	}
 
-	err = structToFile(filepath.Join(a.Directory, "concordance.json"), conc)
+	err = marshal(filepath.Join(a.Directory, "concordance.json"), conc)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
 	}
@@ -380,9 +380,9 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
 	}
 
-	err = fileToStruct(filepath.Join(a.Directory, "concordance.json"), conc)
+	err = unmarshal(filepath.Join(a.Directory, "concordance.json"), conc)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in fileToStruct():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in unmarshal():\n%v\n", err))
 	}
 
 	err = writeFilesToBeTagged(conc, p)
@@ -514,9 +514,9 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 
 	}
 
-	err = structToFile(filepath.Join(a.Directory, "filter.json"), fil)
+	err = marshal(filepath.Join(a.Directory, "filter.json"), fil)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in structToFile() with filter.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in marshal() with filter.json:\n%v\n", err))
 	}
 
 	return nil
@@ -541,14 +541,14 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 	var corp *Corpus = &Corpus{}
 	var fil *Filter = &Filter{}
 
-	err := fileToStruct(filepath.Join(a.Directory, "filter.json"), fil)
+	err := unmarshal(filepath.Join(a.Directory, "filter.json"), fil)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in fileToStruct() with filter.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in unmarshal() with filter.json:\n%v\n", err))
 	}
 
-	err = fileToStruct(filepath.Join(a.Directory, "corpus.json"), corp)
+	err = unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in fileToStruct() with corpus.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in unmarshal() with corpus.json:\n%v\n", err))
 	}
 
 	for id, words := range fil.Words {
@@ -566,9 +566,9 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 		}
 	}
 
-	err = structToFile(filepath.Join(a.Directory, "collate.json"), coll)
+	err = marshal(filepath.Join(a.Directory, "collate.json"), coll)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in structToFile() with collate.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in marshal() with collate.json:\n%v\n", err))
 	}
 
 
@@ -654,8 +654,8 @@ func writeCsv(rows [][]string, path string) error {
 	return nil
 }
 
-// fileToStruct
-func fileToStruct(p string, s any) error {
+// unmarshal
+func unmarshal(p string, s any) error {
 	var b []byte
 
 	f, err := os.Open(p)
@@ -677,8 +677,8 @@ func fileToStruct(p string, s any) error {
 	return nil
 }
 
-// structToFile
-func structToFile(p string, s any) error {
+// marshal
+func marshal(p string, s any) error {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
@@ -728,9 +728,9 @@ func main() {
 	if resume {
 		// For resumptive runs we read the arguments back from disk and set
 		// the variables accordingly.
-		err = fileToStruct(filepath.Join(directory, "args.json"), args)
+		err = unmarshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in fileToStruct():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
+			fmt.Fprintf(os.Stderr, "Error in unmarshal():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
 			os.Exit(1)
 		}
 
@@ -760,16 +760,16 @@ func main() {
 		args.Doctype = doctype
 		args.From = from
 		args.To = to
-		err = structToFile(filepath.Join(directory, "args.json"), args)
+		err = marshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in structToFile():\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "Error in marshal():\n%v\n", err)
 			os.Exit(1)
 		}
 	}
 
-	err = fileToStruct(filepath.Join(directory, args.ConfigFile), conf)
+	err = unmarshal(filepath.Join(directory, args.ConfigFile), conf)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error in fileToStruct():\n%v\n", err)
+		fmt.Fprintf(os.Stderr, "Error in unmarshal():\n%v\n", err)
 		os.Exit(1)
 	}
 
