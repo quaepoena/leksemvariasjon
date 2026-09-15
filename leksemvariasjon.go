@@ -573,10 +573,10 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 				DhlabId:   id,
 				Form:      word.Form,
 				Lemma:     word.Lemma,
-				LangDhlab: word.Lang,
+				LangId:    word.Lang,
 				Value:     word.Value,
 				Doctype:   corp.DHLabID[id].Doctype,
-				LangId:    corp.DHLabID[id].Lang,
+				LangDhlab: corp.DHLabID[id].Lang,
 				URN:       corp.DHLabID[id].URN,
 				Year:      corp.DHLabID[id].Year})
 		}
