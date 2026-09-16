@@ -614,10 +614,10 @@ func mkUniqueDir(dir string, config string) (string, error) {
 	var t time.Time
 
 	t = time.Now().UTC()
-	tStamp = t.Format(time.DateTime)
+	tStamp = t.Format("2006-01-02_15:04:05")
 	base = filepath.Base(config)
 	newDir = filepath.Join(dir,
-		tStamp+"-"+strings.TrimSuffix(base, ".json"))
+		tStamp+"_"+strings.TrimSuffix(base, ".json"))
 
 	err := os.MkdirAll(newDir, 0755)
 	if err != nil {
