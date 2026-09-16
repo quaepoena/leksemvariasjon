@@ -491,7 +491,6 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
 				t, err))
 		}
-		defer f.Close()
 
 		s := bufio.NewScanner(f)
 		for s.Scan() {
@@ -512,6 +511,7 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 				t, err))
 		}
 
+		f.Close()
 	}
 
 	err = marshal(filepath.Join(a.Directory, "filter.json"), fil)
