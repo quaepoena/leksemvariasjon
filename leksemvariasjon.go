@@ -782,7 +782,8 @@ func main() {
 			os.Exit(1)
 		}
 
-		// The '-config' flag, which was a path, is changed to the basename.
+		// The '-config' flag, which (potentially) included directories,
+		// is changed to the basename.
 		config = filepath.Base(config)
 
 		args.ConcLimit = concLimit
