@@ -31,7 +31,9 @@ const (
 
 // Flags.
 var (
+	concLimit int
 	config    string
+	corpLimit int
 	directory string
 	doctype   string
 	from      int
@@ -40,7 +42,9 @@ var (
 )
 
 func init() {
+	flag.IntVar(&concLimit, "concLimit", 999999, "Limit the numbers of Concordance results.")
 	flag.StringVar(&config, "config", "", "Path to a JSON config file. Required on an initial run.")
+	flag.IntVar(&corpLimit, "corpLimit", 999999, "Limit the numbers of Corpus results.")
 	flag.StringVar(&directory, "directory", "", "Directory to write files to, creating it if it doesn't exist.")
 	flag.StringVar(&doctype, "doctype", "", "The doctype to search for.")
 	flag.BoolVar(&resume, "resume", false, "Resume a previously started job.")
@@ -51,7 +55,7 @@ func init() {
 // Struct Args holds command line arguments and saves/read them to/from disk.
 type Args struct {
 	ConfigFile, Directory, Doctype string
-	From, To                       int
+	ConcLimit, CorpLimit, From, To int
 }
 
 // Struct Word contains word forms with the corresponding morphological
@@ -130,7 +134,7 @@ func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	req.Doctype = a.Doctype
 	req.FromYear = a.From
 	req.ToYear = a.To + 1 // "to_year" on the server side is exclusive.
-	req.Limit = 999999
+	req.Limit = a.CorpLimit
 	req.Fulltext = strings.Join(words, " OR ")
 	req.Lang = c.Language
 
@@ -263,7 +267,7 @@ func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 
 	req.DHLabIDs = ids
 	req.HTMLFormatting = false
-	req.Limit = 999999
+	req.Limit = a.ConcLimit
 	req.Query = strings.Join(words, " OR ")
 	req.Window = 25
 
@@ -781,6 +785,8 @@ func main() {
 		// The '-config' flag, which was a path, is changed to the basename.
 		config = filepath.Base(config)
 
+		args.ConcLimit = concLimit
+		args.CorpLimit = corpLimit
 		args.ConfigFile = config
 		args.Directory = directory
 		args.Doctype = doctype
