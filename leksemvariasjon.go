@@ -1,8 +1,9 @@
 // Command leksemvariasjon displays lexeme variation over Norwegian texts.
-// The user creates a configuration file which tells which words and
+// The user creates a configuration file specifying which words and
 // morphological features he/she is interested in. The National Library of
-// Norway's DHLAB API is queried to find concordance lines which are then tagged
-// and the results are filtered and put into a CSV.
+// Norway's DHLAB API is queried to find concordance lines with these words
+// which are then tagged and the results are filtered and put into a CSV.
+// See README.md for more information and usage examples.
 package main
 
 import (
@@ -52,7 +53,7 @@ func init() {
 	flag.IntVar(&to, "to", 0, "The end year for the search (inclusive).")
 }
 
-// Struct Args holds command line arguments and saves/read them to/from disk.
+// Struct Args holds command line arguments and saves/reads them to/from disk.
 type Args struct {
 	ConfigFile, Directory, Doctype string
 	ConcLimit, CorpLimit, From, To int
@@ -65,7 +66,7 @@ type Word struct {
 	Morphology  []string
 }
 
-// Struct Lemma holds a lemma and all the Words under it.
+// Struct Lemma holds a lemma and all the word forms under it.
 type Lemma struct {
 	Lemma string
 	Words []Word
@@ -84,7 +85,7 @@ type WorkflowStage interface {
 	finished(*Args) bool
 }
 
-// Struct CorpusMetadata ...
+// Struct CorpusMetadata contains metadata concerning a given DHLab object.
 type CorpusMetadata struct {
 	Doctype string
 	Lang    string
@@ -92,12 +93,12 @@ type CorpusMetadata struct {
 	Year    int
 }
 
-// Struct Corpus ...
+// Struct Corpus maps a dhlabid to the metadata concerning it.
 type Corpus struct {
 	DHLabID map[int]CorpusMetadata
 }
 
-// Struct CorpusRequest contains the necessary information for the DHLab
+// Struct CorpusRequest contains the necessary information needed for the DHLab
 // build_corpus API call.
 type CorpusRequest struct {
 	Doctype  string `json:"doctype"`
@@ -108,8 +109,8 @@ type CorpusRequest struct {
 	Limit    int    `json:"limit"`
 }
 
-// Struct CorpusResponse contains the information we need from the DHLab build_corpus
-// API call.
+// Struct CorpusResponse contains the information we need from the DHLab
+// build_corpus API call.
 type CorpusResponse struct {
 	DHLabID map[string]int
 	Doctype map[string]string
