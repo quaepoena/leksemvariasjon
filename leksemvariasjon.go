@@ -119,7 +119,7 @@ type CorpusResponse struct {
 	Year    map[string]int
 }
 
-// buildCorpusRequest builds and returns a JSON object for the DHLab
+// buildCorpusRequest builds and returns the JSON object used in the DHLab
 // build_corpus call.
 func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	var req CorpusRequest
@@ -147,7 +147,7 @@ func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	return b, nil
 }
 
-// buildCorpusResponse requests data with the parameters from req and populates
+// buildCorpusResponse calls the build_corpus endpoint with req and populates
 // c with the response.
 func buildCorpusResponse(req []byte, c *CorpusResponse) error {
 	var uri = DHLabAPI + "build_corpus"
@@ -171,7 +171,8 @@ func buildCorpusResponse(req []byte, c *CorpusResponse) error {
 	return nil
 }
 
-// buildCorpus ...
+// buildCorpus populates a Corpus struct with data from the build_corpus
+// API call.
 func buildCorpus(resp *CorpusResponse, c *Corpus) error {
 	c.DHLabID = make(map[int]CorpusMetadata)
 
@@ -186,6 +187,7 @@ func buildCorpus(resp *CorpusResponse, c *Corpus) error {
 	return nil
 }
 
+// run builds a Corpus object and writes it to disk as JSON.
 func (c *Corpus) run(a *Args, conf *Conf) error {
 	var req []byte
 	var resp *CorpusResponse = &CorpusResponse{}
@@ -227,18 +229,21 @@ type ConcordanceRequest struct {
 	Window         int    `json:"window"`
 }
 
-// Struct ConcordanceResponse contains the information we need from the DHLab conc
-// API call.
+// Struct ConcordanceResponse contains the information we save from the DHLab
+// conc API call.
 type ConcordanceResponse struct {
 	DocID map[string]int
 	Conc  map[string]string
 }
 
-// Struct Concordance ...
+// Struct Concordance contains concordance lines, mapped as DHLab IDs to list
+// strings, i.e. concordance lines.
 type Concordance struct {
 	Lines map[int][]string
 }
 
+// dhlabIDs returns a list of IDs from a Corpus object previously saved to disk
+// as JSON.
 func dhlabIDs(a *Args) ([]int, error) {
 	var ids []int
 	var corp *Corpus = &Corpus{}
@@ -255,6 +260,7 @@ func dhlabIDs(a *Args) ([]int, error) {
 	return ids, nil
 }
 
+// buildConcordanceRequest creates the JSON object needed from the conc API call.
 func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -280,8 +286,8 @@ func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	return b, nil
 }
 
-// buildConcordanceResponse requests data with the parameters from req and populates
-// concResp with the result.
+// buildConcordanceResponse calls the conc API call and populates a
+// ConcordanceRespone with the results.
 func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	var uri = DHLabAPI + "conc"
 
@@ -304,8 +310,8 @@ func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	return nil
 }
 
-// buildConcordance requests data with the parameters from req and populates
-// concResp with the result.
+// buildConcordance populates a Concordance struct with the data from a
+// ConcordanceResponse.
 func buildConcordance(concResp *ConcordanceResponse, conc *Concordance) error {
 	conc.Lines = make(map[int][]string)
 
@@ -316,6 +322,8 @@ func buildConcordance(concResp *ConcordanceResponse, conc *Concordance) error {
 	return nil
 }
 
+// run uses a list of previously fetched DHLab IDs to get concordance lines and
+// writh the results to disk as JSON.
 func (conc *Concordance) run(a *Args, c *Conf) error {
 	var ids []int
 	var resp *ConcordanceResponse = &ConcordanceResponse{}
