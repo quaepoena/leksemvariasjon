@@ -677,8 +677,8 @@ func (*Collate) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "collate.csv"))
 }
 
-// uniqueDir makes a unique output directory for each (non-resumptive) run
-// of the program.
+// Function uniqueDir makes a unique output directory for each (non-resumptive)
+// run of the program.
 func uniqueDir(dir string, config string) (string, error) {
 	var base, newDir, tStamp string
 	var t time.Time
@@ -697,7 +697,8 @@ func uniqueDir(dir string, config string) (string, error) {
 	return newDir, nil
 }
 
-// copyConfig copies the configuration file to the newly created output directory.
+// Function copyConfig copies the configuration file to the newly created output
+// directory.
 func copyConfig(dir string, config string) error {
 	var p string
 	var dst, src *os.File
@@ -723,7 +724,6 @@ func copyConfig(dir string, config string) error {
 	return nil
 }
 
-// fileExists returns true if a given file path exists.
 func fileExists(s string) bool {
 	f, err := os.Open(s)
 	if err != nil {
@@ -734,7 +734,6 @@ func fileExists(s string) bool {
 	return true
 }
 
-// writeCsv
 func writeCsv(path string, rows [][]string) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
 	if err != nil {
@@ -751,7 +750,6 @@ func writeCsv(path string, rows [][]string) error {
 	return nil
 }
 
-// unmarshal
 func unmarshal(p string, s any) error {
 	var b []byte
 
@@ -774,7 +772,6 @@ func unmarshal(p string, s any) error {
 	return nil
 }
 
-// marshal
 func marshal(p string, s any) error {
 	b, err := json.Marshal(s)
 	if err != nil {
