@@ -385,6 +385,41 @@ func writeFilesForTagging(conc *Concordance, p string) error {
 	return nil
 }
 
+func tagFiles(p string) error {
+	cmd := exec.Command("python", "./tagger.py", p, p)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in cmd.StdoutPipe():\n%v\n", err))
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in cmd.StderrPipe():\n%v\n", err))
+	}
+
+	if err := cmd.Start(); err != nil {
+		return errors.New(fmt.Sprintf("Error in cmd.Start():\n%v\n", err))
+	}
+
+	tOut, err := io.ReadAll(stdout)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in io.ReadAll() (stdout):\n%v\n", err))
+	}
+
+	tErr, _ := io.ReadAll(stderr)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error in io.ReadAll() (stderr):\n%v\n", err))
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return errors.New(fmt.Sprintf("Error in cmd.Wait():\n%v\n", err))
+	}
+
+	fmt.Printf("%s\n", tOut)
+	fmt.Printf("%s\n", tErr)
+
+	return nil
+}
+
 func (*Tag) run(a *Args, _ *Conf) error {
 	var conc *Concordance = &Concordance{}
 
@@ -404,10 +439,9 @@ func (*Tag) run(a *Args, _ *Conf) error {
 		return errors.New(fmt.Sprintf("Error in writeFilesForTagging():\n%v\n", err))
 	}
 
-	cmd := exec.Command("python", "./tagger.py", p, p)
-	err = cmd.Run()
+	err = tagFiles(p)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Cmd.Run():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in tagFiles():\n%v\n", err))
 	}
 
 	err = os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0666)
