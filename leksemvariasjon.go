@@ -15,7 +15,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"net/http"
 	"os"
 	"os/exec"
@@ -24,6 +23,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
