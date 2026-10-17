@@ -444,7 +444,8 @@ type Filter struct {
 	Words map[int][]MatchingWord
 }
 
-func extractDhlabId(s string) (int, error) {
+// dhlabID returns the dhlabID from a (tagged) filename.
+func dhlabID(s string) (int, error) {
 	re := regexp.MustCompile("^/.+/([[:digit:]]+)-.+$")
 	id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
 	if err != nil {
