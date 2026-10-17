@@ -120,7 +120,7 @@ type CorpusResponse struct {
 	Year    map[string]int
 }
 
-// corpusRequest builds and returns the JSON object used in the DHLab
+// Function corpusRequest builds and returns the JSON object used in the DHLab
 // build_corpus call.
 func corpusRequest(a *Args, c *Conf) ([]byte, error) {
 	var req CorpusRequest
@@ -148,8 +148,8 @@ func corpusRequest(a *Args, c *Conf) ([]byte, error) {
 	return b, nil
 }
 
-// corpusResponse calls the build_corpus endpoint with req and populates
-// c with the response.
+// Function corpusResponse calls the build_corpus endpoint with req and
+// populates c with the response.
 func corpusResponse(req []byte, c *CorpusResponse) error {
 	var uri = DHLabAPI + "build_corpus"
 
@@ -172,7 +172,7 @@ func corpusResponse(req []byte, c *CorpusResponse) error {
 	return nil
 }
 
-// corpus populates a Corpus struct with data from the build_corpus
+// Function corpus populates a Corpus struct with data from the build_corpus
 // API call.
 func corpus(resp *CorpusResponse, c *Corpus) error {
 	c.DHLabID = make(map[int]CorpusMetadata)
@@ -188,7 +188,7 @@ func corpus(resp *CorpusResponse, c *Corpus) error {
 	return nil
 }
 
-// run builds a Corpus object and writes it to disk as JSON.
+// Run builds a Corpus object and writes it to disk as JSON.
 func (c *Corpus) run(a *Args, conf *Conf) error {
 	var req []byte
 	var resp *CorpusResponse = &CorpusResponse{}
@@ -243,8 +243,8 @@ type Concordance struct {
 	Lines map[int][]string
 }
 
-// dhlabIDs returns a list of IDs from a Corpus object previously saved to disk
-// as JSON.
+// Function dhlabIDs returns a list of IDs from a Corpus object previously saved
+// to disk as JSON.
 func dhlabIDs(a *Args) ([]int, error) {
 	var ids []int
 	var corp *Corpus = &Corpus{}
@@ -261,7 +261,8 @@ func dhlabIDs(a *Args) ([]int, error) {
 	return ids, nil
 }
 
-// concordanceRequest creates the JSON object needed from the conc API call.
+// Function concordanceRequest creates the JSON object needed from the conc API
+// call.
 func concordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
@@ -287,7 +288,7 @@ func concordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	return b, nil
 }
 
-// concordanceResponse calls the conc API call and populates a
+// Function concordanceResponse calls the conc API call and populates a
 // ConcordanceRespone with the results.
 func concordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	var uri = DHLabAPI + "conc"
@@ -311,7 +312,7 @@ func concordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	return nil
 }
 
-// concordance populates a Concordance struct with the data from a
+// Function concordance populates a Concordance struct with the data from a
 // ConcordanceResponse.
 func concordance(concResp *ConcordanceResponse, conc *Concordance) error {
 	conc.Lines = make(map[int][]string)
@@ -323,7 +324,7 @@ func concordance(concResp *ConcordanceResponse, conc *Concordance) error {
 	return nil
 }
 
-// run uses a list of previously fetched DHLab IDs to get concordance lines and
+// Run uses a list of previously fetched DHLab IDs to get concordance lines and
 // writh the results to disk as JSON.
 func (c *Concordance) run(a *Args, conf *Conf) error {
 	var ids []int
@@ -365,10 +366,11 @@ func (*Concordance) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "concordance.json"))
 }
 
-// Struct Tag represents running the external tagger.
-// The data it works with is read from and written directly to disk.
+// Struct Tag represents running the external tagger, which writes its results
+// directly to disk. Therefore we don't need to keep any information concerning it.
 type Tag struct{}
 
+// Function writeFilesForTagging writes a file to disk for each concordance line.
 func writeFilesForTagging(conc *Concordance, p string) error {
 	for i, v := range conc.Lines {
 		for _, line := range v {
@@ -385,6 +387,9 @@ func writeFilesForTagging(conc *Concordance, p string) error {
 	return nil
 }
 
+// Function tagFiles runs the tagger, an external Python program.
+// During normal operation, stdout from the tagger shows where each tagged file
+// was written to while stderr is empty.
 func tagFiles(p string) error {
 	cmd := exec.Command("python", "./tagger.py", p, p)
 	stdout, err := cmd.StdoutPipe()
@@ -420,6 +425,7 @@ func tagFiles(p string) error {
 	return nil
 }
 
+// Run prepares the concordance lines for tagging and runs the tagger.
 func (*Tag) run(a *Args, _ *Conf) error {
 	var conc *Concordance = &Concordance{}
 
@@ -456,30 +462,33 @@ func (*Tag) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
-// Struct TaggedWord ...
+// Struct TaggedWord contains the word-specific tagging information.
 type TaggedWord struct {
 	Word  string   `json:"w"`
 	Tags  []string `json:"t"`
 	Lemma string   `json:"l"`
 }
 
-// Struct TaggedEntry ...
+// Struct TaggedEntry contains language information and a list of tagged words.
+// This is most often a whole sentence.
 type TaggedEntry struct {
 	Lang        string
 	TaggedWords []TaggedWord `json:"sent"`
 }
 
-// Struct MatchingWord ...
+// Struct MatchingWord contains information on tagged words that match the
+// criteria given in the config file.
 type MatchingWord struct {
 	Form, Lang, Lemma, Value string
 }
 
-// Struct Filter ...
+// Struct Filter maps dhlabIDs to a list of words matching the criteria given in
+// the config file.
 type Filter struct {
 	Words map[int][]MatchingWord
 }
 
-// dhlabID returns the dhlabID from a (tagged) filename.
+// Function dhlabID returns the dhlabID from a (tagged) filename.
 func dhlabID(s string) (int, error) {
 	re := regexp.MustCompile("^/.+/([[:digit:]]+)-.+$")
 	id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
@@ -490,6 +499,9 @@ func dhlabID(s string) (int, error) {
 	return id, nil
 }
 
+// Function matchingWords checks a tagged word against the criteria given in the
+// config file. If everything matches then the word is appended to fil, a list
+// of matching entries.
 func matchingWords(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) error {
 	for _, lemma := range conf.Lemmas {
 		for _, word := range lemma.Words {
@@ -513,6 +525,8 @@ func matchingWords(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) err
 	return nil
 }
 
+// Run reads through the tagged files and finds the words matching the criteria
+// given in the config file.
 func (f *Filter) run(a *Args, conf *Conf) error {
 	f.Words = make(map[int][]MatchingWord)
 	var tagged []string
@@ -576,17 +590,20 @@ func (*Filter) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "filter.json"))
 }
 
-// Struct Collation ...
+// Struct Collation contains all the collected information on a given word
+// matching the criteria given in the config file.
 type Collation struct {
 	DhlabId, Year                                       int
 	Doctype, Form, Lemma, LangDhlab, LangId, URN, Value string
 }
 
-// Struct Collate ...
+// Struct Collate contains a list of words matching the criteria given in the
+// config file.
 type Collate struct {
 	Collations []Collation
 }
 
+// Function record creates CSV records from a Collation struct.
 func record(coll *Collation) []string {
 	var fields []string
 
@@ -603,6 +620,8 @@ func record(coll *Collation) []string {
 	return fields
 }
 
+// Run collates the filtered results with the information from the (saved)
+// Corpus struct. The results are written to disk as both JSON and CSV.
 func (c *Collate) run(a *Args, conf *Conf) error {
 	var corp *Corpus = &Corpus{}
 	var fil *Filter = &Filter{}
