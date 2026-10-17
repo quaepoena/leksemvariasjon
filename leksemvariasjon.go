@@ -324,7 +324,7 @@ func buildConcordance(concResp *ConcordanceResponse, conc *Concordance) error {
 
 // run uses a list of previously fetched DHLab IDs to get concordance lines and
 // writh the results to disk as JSON.
-func (conc *Concordance) run(a *Args, c *Conf) error {
+func (c *Concordance) run(a *Args, conf *Conf) error {
 	var ids []int
 	var resp *ConcordanceResponse = &ConcordanceResponse{}
 
@@ -337,7 +337,7 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 			filepath.Join(a.Directory, "corpus.json")))
 	}
 
-	req, err := buildConcordanceRequest(a, c, ids)
+	req, err := buildConcordanceRequest(a, conf, ids)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in ConcordanceRequest():\n%v\n", err))
 	}
@@ -347,12 +347,12 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 		return errors.New(fmt.Sprintf("Error in BuildConcordanceResponse():\n%v\n", err))
 	}
 
-	err = buildConcordance(resp, conc)
+	err = buildConcordance(resp, c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in buildConcordance():\n%v\n", err))
 	}
 
-	err = marshal(filepath.Join(a.Directory, "concordance.json"), conc)
+	err = marshal(filepath.Join(a.Directory, "concordance.json"), c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
 	}
@@ -477,8 +477,8 @@ func insertMatching(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) er
 	return nil
 }
 
-func (fil *Filter) run(a *Args, conf *Conf) error {
-	fil.Words = make(map[int][]MatchingWord)
+func (f *Filter) run(a *Args, conf *Conf) error {
+	f.Words = make(map[int][]MatchingWord)
 	var tagged []string
 	dir := filepath.Join(a.Directory, "tagged")
 
@@ -499,13 +499,13 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
 		}
 
-		f, err := os.Open(t)
+		fd, err := os.Open(t)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
 				t, err))
 		}
 
-		s := bufio.NewScanner(f)
+		s := bufio.NewScanner(fd)
 		for s.Scan() {
 			entry := &TaggedEntry{}
 			err = json.Unmarshal(s.Bytes(), &entry)
@@ -513,7 +513,7 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 			}
 
-			err = insertMatching(entry, conf, dhlabId, fil)
+			err = insertMatching(entry, conf, dhlabId, f)
 			if err != nil {
 				return errors.New(fmt.Sprintf("Error in insertMatching():\n%v\n", err))
 			}
@@ -524,10 +524,11 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 				t, err))
 		}
 
-		f.Close()
+		fd.Close()
 	}
 
-	err = marshal(filepath.Join(a.Directory, "filter.json"), fil)
+
+	err = marshal(filepath.Join(a.Directory, "filter.json"), f)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in marshal() with filter.json:\n%v\n", err))
 	}
@@ -566,8 +567,8 @@ func buildRecord(coll *Collation) []string {
 	return fields
 }
 
-func (coll *Collate) run(a *Args, conf *Conf) error {
-	var corp *Corpus = &Corpus{}
+func (c *Collate) run(a *Args, conf *Conf) error {
+	var cor *Corpus = &Corpus{}
 	var fil *Filter = &Filter{}
 
 	err := unmarshal(filepath.Join(a.Directory, "filter.json"), fil)
@@ -575,27 +576,27 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in unmarshal() with filter.json:\n%v\n", err))
 	}
 
-	err = unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
+	err = unmarshal(filepath.Join(a.Directory, "corpus.json"), cor)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in unmarshal() with corpus.json:\n%v\n", err))
 	}
 
 	for id, words := range fil.Words {
 		for _, word := range words {
-			coll.Collations = append(coll.Collations, Collation{
+			c.Collations = append(c.Collations, Collation{
 				DhlabId:   id,
 				Form:      word.Form,
 				Lemma:     word.Lemma,
 				LangId:    word.Lang,
 				Value:     word.Value,
-				Doctype:   corp.DHLabID[id].Doctype,
-				LangDhlab: corp.DHLabID[id].Lang,
-				URN:       corp.DHLabID[id].URN,
-				Year:      corp.DHLabID[id].Year})
+				Doctype:   cor.DHLabID[id].Doctype,
+				LangDhlab: cor.DHLabID[id].Lang,
+				URN:       cor.DHLabID[id].URN,
+				Year:      cor.DHLabID[id].Year})
 		}
 	}
 
-	err = marshal(filepath.Join(a.Directory, "collate.json"), coll)
+	err = marshal(filepath.Join(a.Directory, "collate.json"), c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in marshal() with collate.json:\n%v\n", err))
 	}
@@ -604,7 +605,7 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 	header := []string{"dhlabid", "urn", "doctype", "year", "form", "lemma",
 		"value", "lang_dhlab", "lang_id"}
 	records = append(records, header)
-	for _, c := range coll.Collations {
+	for _, c := range c.Collations {
 		records = append(records, buildRecord(&c))
 	}
 
