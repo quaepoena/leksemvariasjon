@@ -414,8 +414,8 @@ func tagFiles(p string) error {
 		return errors.New(fmt.Sprintf("error in cmd.Wait(): %v", err))
 	}
 
-	fmt.Printf("%s\n", tOut)
-	fmt.Printf("%s\n", tErr)
+	fmt.Fprintln(os.Stdout, tOut)
+	fmt.Fprintln(os.Stderr, tErr)
 
 	return nil
 }
