@@ -281,7 +281,7 @@ func concordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 
 	b, err := json.Marshal(req)
 	if err != nil {
-		return []byte{}, errors.New(fmt.Sprintf("Error on json.Marshal():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("Error on json.Marshal():\n%v\n", err))
 	}
 
 	return b, nil
