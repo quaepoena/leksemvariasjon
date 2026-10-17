@@ -577,7 +577,6 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 		fd.Close()
 	}
 
-
 	err = marshal(filepath.Join(a.Directory, "filter.json"), f)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error in marshal() with filter.json: %v", err))
@@ -593,7 +592,7 @@ func (*Filter) finished(a *Args) bool {
 // Struct Collation contains all the collected information on a given word
 // matching the criteria given in the config file.
 type Collation struct {
-	DhlabId, Year                                       int
+	DhlabId, Year, Index                                int
 	Doctype, Form, Lemma, LangDhlab, LangId, URN, Value string
 }
 
@@ -608,6 +607,7 @@ func record(coll *Collation) []string {
 	var fields []string
 
 	fields = append(fields, strconv.Itoa(coll.DhlabId))
+	fields = append(fields, strconv.Itoa(coll.Index))
 	fields = append(fields, coll.URN)
 	fields = append(fields, coll.Doctype)
 	fields = append(fields, strconv.Itoa(coll.Year))
@@ -637,9 +637,10 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 	}
 
 	for id, words := range fil.Words {
-		for _, word := range words {
+		for i, word := range words {
 			c.Collations = append(c.Collations, Collation{
 				DhlabId:   id,
+				Index:     i,
 				Form:      word.Form,
 				Lemma:     word.Lemma,
 				LangId:    word.Lang,
@@ -657,8 +658,8 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 	}
 
 	var records [][]string
-	header := []string{"dhlabid", "urn", "doctype", "year", "form", "lemma",
-		"value", "lang_dhlab", "lang_id"}
+	header := []string{"dhlabid", "index", "urn", "doctype", "year", "form",
+		"lemma", "value", "lang_dhlab", "lang_id"}
 	records = append(records, header)
 	for _, c := range c.Collations {
 		records = append(records, record(&c))
