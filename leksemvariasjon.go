@@ -570,7 +570,7 @@ func record(coll *Collation) []string {
 }
 
 func (c *Collate) run(a *Args, conf *Conf) error {
-	var cor *Corpus = &Corpus{}
+	var corp *Corpus = &Corpus{}
 	var fil *Filter = &Filter{}
 
 	err := unmarshal(filepath.Join(a.Directory, "filter.json"), fil)
@@ -578,7 +578,7 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 		return errors.New(fmt.Sprintf("Error in unmarshal() with filter.json:\n%v\n", err))
 	}
 
-	err = unmarshal(filepath.Join(a.Directory, "corpus.json"), cor)
+	err = unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error in unmarshal() with corpus.json:\n%v\n", err))
 	}
@@ -591,10 +591,10 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 				Lemma:     word.Lemma,
 				LangId:    word.Lang,
 				Value:     word.Value,
-				Doctype:   cor.DHLabID[id].Doctype,
-				LangDhlab: cor.DHLabID[id].Lang,
-				URN:       cor.DHLabID[id].URN,
-				Year:      cor.DHLabID[id].Year})
+				Doctype:   corp.DHLabID[id].Doctype,
+				LangDhlab: corp.DHLabID[id].Lang,
+				URN:       corp.DHLabID[id].URN,
+				Year:      corp.DHLabID[id].Year})
 		}
 	}
 
