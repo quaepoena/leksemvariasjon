@@ -215,7 +215,7 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 	return nil
 }
 
-func (c *Corpus) finished(a *Args) bool {
+func (*Corpus) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "corpus.json"))
 }
 
@@ -360,7 +360,7 @@ func (conc *Concordance) run(a *Args, c *Conf) error {
 	return nil
 }
 
-func (conc *Concordance) finished(a *Args) bool {
+func (*Concordance) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "concordance.json"))
 }
 
@@ -384,7 +384,7 @@ func writeFilesToBeTagged(conc *Concordance, p string) error {
 	return nil
 }
 
-func (t *Tag) run(a *Args, conf *Conf) error {
+func (*Tag) run(a *Args, conf *Conf) error {
 	var conc *Concordance = &Concordance{}
 
 	p := filepath.Join(a.Directory, "tagged")
@@ -417,7 +417,7 @@ func (t *Tag) run(a *Args, conf *Conf) error {
 	return nil
 }
 
-func (t *Tag) finished(a *Args) bool {
+func (*Tag) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "taggingFinished.txt"))
 }
 
@@ -535,7 +535,7 @@ func (fil *Filter) run(a *Args, conf *Conf) error {
 	return nil
 }
 
-func (t *Filter) finished(a *Args) bool {
+func (*Filter) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "filter.json"))
 }
 
@@ -616,7 +616,7 @@ func (coll *Collate) run(a *Args, conf *Conf) error {
 	return nil
 }
 
-func (c *Collate) finished(a *Args) bool {
+func (*Collate) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "collate.csv"))
 }
 
