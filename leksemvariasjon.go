@@ -119,9 +119,9 @@ type CorpusResponse struct {
 	Year    map[string]int
 }
 
-// buildCorpusRequest builds and returns the JSON object used in the DHLab
+// corpusRequest builds and returns the JSON object used in the DHLab
 // build_corpus call.
-func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
+func corpusRequest(a *Args, c *Conf) ([]byte, error) {
 	var req CorpusRequest
 	var words []string
 	var b []byte
@@ -147,9 +147,9 @@ func buildCorpusRequest(a *Args, c *Conf) ([]byte, error) {
 	return b, nil
 }
 
-// buildCorpusResponse calls the build_corpus endpoint with req and populates
+// corpusResponse calls the build_corpus endpoint with req and populates
 // c with the response.
-func buildCorpusResponse(req []byte, c *CorpusResponse) error {
+func corpusResponse(req []byte, c *CorpusResponse) error {
 	var uri = DHLabAPI + "build_corpus"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -171,9 +171,9 @@ func buildCorpusResponse(req []byte, c *CorpusResponse) error {
 	return nil
 }
 
-// buildCorpus populates a Corpus struct with data from the build_corpus
+// corpus populates a Corpus struct with data from the build_corpus
 // API call.
-func buildCorpus(resp *CorpusResponse, c *Corpus) error {
+func corpus(resp *CorpusResponse, c *Corpus) error {
 	c.DHLabID = make(map[int]CorpusMetadata)
 
 	for i, v := range resp.DHLabID {
@@ -192,19 +192,19 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 	var req []byte
 	var resp *CorpusResponse = &CorpusResponse{}
 
-	req, err := buildCorpusRequest(a, conf)
+	req, err := corpusRequest(a, conf)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.buildRequest():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in corpusRequest():\n%v\n", err))
 	}
 
-	err = buildCorpusResponse(req, resp)
+	err = corpusResponse(req, resp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in Corpus.buildCorpusResponse():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in corpusResponse():\n%v\n", err))
 	}
 
-	err = buildCorpus(resp, c)
+	err = corpus(resp, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in buildCorpus():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in corpus():\n%v\n", err))
 	}
 
 	err = marshal(filepath.Join(a.Directory, "corpus.json"), c)
@@ -260,8 +260,8 @@ func dhlabIDs(a *Args) ([]int, error) {
 	return ids, nil
 }
 
-// buildConcordanceRequest creates the JSON object needed from the conc API call.
-func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
+// concordanceRequest creates the JSON object needed from the conc API call.
+func concordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	var req ConcordanceRequest
 	var words []string
 	var b []byte
@@ -286,9 +286,9 @@ func buildConcordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 	return b, nil
 }
 
-// buildConcordanceResponse calls the conc API call and populates a
+// concordanceResponse calls the conc API call and populates a
 // ConcordanceRespone with the results.
-func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
+func concordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	var uri = DHLabAPI + "conc"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -310,9 +310,9 @@ func buildConcordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 	return nil
 }
 
-// buildConcordance populates a Concordance struct with the data from a
+// concordance populates a Concordance struct with the data from a
 // ConcordanceResponse.
-func buildConcordance(concResp *ConcordanceResponse, conc *Concordance) error {
+func concordance(concResp *ConcordanceResponse, conc *Concordance) error {
 	conc.Lines = make(map[int][]string)
 
 	for i, v := range concResp.DocID {
@@ -337,19 +337,19 @@ func (c *Concordance) run(a *Args, conf *Conf) error {
 			filepath.Join(a.Directory, "corpus.json")))
 	}
 
-	req, err := buildConcordanceRequest(a, conf, ids)
+	req, err := concordanceRequest(a, conf, ids)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in ConcordanceRequest():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in concordanceRequest():\n%v\n", err))
 	}
 
-	err = buildConcordanceResponse(req, resp)
+	err = concordanceResponse(req, resp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in BuildConcordanceResponse():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in concordanceResponse():\n%v\n", err))
 	}
 
-	err = buildConcordance(resp, c)
+	err = concordance(resp, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in buildConcordance():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in concordance():\n%v\n", err))
 	}
 
 	err = marshal(filepath.Join(a.Directory, "concordance.json"), c)
@@ -368,7 +368,7 @@ func (*Concordance) finished(a *Args) bool {
 // The data it works with is read from and written directly to disk.
 type Tag struct{}
 
-func writeFilesToBeTagged(conc *Concordance, p string) error {
+func writeFilesForTagging(conc *Concordance, p string) error {
 	for i, v := range conc.Lines {
 		for _, line := range v {
 			name := filepath.Join(p,
@@ -398,9 +398,9 @@ func (*Tag) run(a *Args, _ *Conf) error {
 		return errors.New(fmt.Sprintf("Error in unmarshal():\n%v\n", err))
 	}
 
-	err = writeFilesToBeTagged(conc, p)
+	err = writeFilesForTagging(conc, p)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in writeFilesToBeTagged():\n%v\n", err))
+		return errors.New(fmt.Sprintf("Error in writeFilesForTagging():\n%v\n", err))
 	}
 
 	cmd := exec.Command("python", "./tagger.py", p, p)
@@ -455,7 +455,7 @@ func dhlabID(s string) (int, error) {
 	return id, nil
 }
 
-func insertMatching(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) error {
+func matchingWords(entry *TaggedEntry, conf *Conf, dhlabId int, fil *Filter) error {
 	for _, lemma := range conf.Lemmas {
 		for _, word := range lemma.Words {
 			for _, taggedWord := range entry.TaggedWords {
@@ -495,9 +495,9 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 	}
 
 	for _, t := range tagged {
-		dhlabId, err := extractDhlabId(t)
+		dhlabId, err := dhlabID(t)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Error in extractDhlabID():\n%v\n", err))
+			return errors.New(fmt.Sprintf("Error in dhlabID():\n%v\n", err))
 		}
 
 		fd, err := os.Open(t)
@@ -514,9 +514,9 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
 			}
 
-			err = insertMatching(entry, conf, dhlabId, f)
+			err = matchingWords(entry, conf, dhlabId, f)
 			if err != nil {
-				return errors.New(fmt.Sprintf("Error in insertMatching():\n%v\n", err))
+				return errors.New(fmt.Sprintf("Error in matchingWords():\n%v\n", err))
 			}
 		}
 
@@ -552,7 +552,7 @@ type Collate struct {
 	Collations []Collation
 }
 
-func buildRecord(coll *Collation) []string {
+func record(coll *Collation) []string {
 	var fields []string
 
 	fields = append(fields, strconv.Itoa(coll.DhlabId))
@@ -607,7 +607,7 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 		"value", "lang_dhlab", "lang_id"}
 	records = append(records, header)
 	for _, c := range c.Collations {
-		records = append(records, buildRecord(&c))
+		records = append(records, record(&c))
 	}
 
 	err = writeCsv(filepath.Join(a.Directory, "collate.csv"), records)
@@ -622,9 +622,9 @@ func (*Collate) finished(a *Args) bool {
 	return fileExists(filepath.Join(a.Directory, "collate.csv"))
 }
 
-// mkUniqueDir makes a unique output directory for each (non-resumptive) run
+// uniqueDir makes a unique output directory for each (non-resumptive) run
 // of the program.
-func mkUniqueDir(dir string, config string) (string, error) {
+func uniqueDir(dir string, config string) (string, error) {
 	var base, newDir, tStamp string
 	var t time.Time
 
@@ -781,9 +781,9 @@ func main() {
 		// flag values appropriately.
 
 		// The '-directory' flag is changed to the new, unique directory.
-		directory, err = mkUniqueDir(directory, config)
+		directory, err = uniqueDir(directory, config)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in mkUniqueDir():\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "Error in uniqueDir():\n%v\n", err)
 			os.Exit(1)
 		}
 
