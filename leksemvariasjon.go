@@ -142,7 +142,7 @@ func corpusRequest(a *Args, c *Conf) ([]byte, error) {
 
 	b, err := json.Marshal(req)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error on json.Marshal():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
 	}
 
 	return b, nil
@@ -155,18 +155,18 @@ func corpusResponse(req []byte, c *CorpusResponse) error {
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in http.Post():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in http.Post(): %v", err))
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in io.ReadAll(): %v", err))
 	}
 
 	err = json.Unmarshal(b, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
 	}
 
 	return nil
@@ -195,22 +195,22 @@ func (c *Corpus) run(a *Args, conf *Conf) error {
 
 	req, err := corpusRequest(a, conf)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in corpusRequest():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in corpusRequest(): %v", err))
 	}
 
 	err = corpusResponse(req, resp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in corpusResponse():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in corpusResponse(): %v", err))
 	}
 
 	err = corpus(resp, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in corpus():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in corpus(): %v", err))
 	}
 
 	err = marshal(filepath.Join(a.Directory, "corpus.json"), c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
 	}
 
 	return nil
@@ -251,7 +251,7 @@ func dhlabIDs(a *Args) ([]int, error) {
 
 	err := unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error in unmarshal():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("error in unmarshal(): %v", err))
 	}
 
 	for i := range corp.DHLabID {
@@ -281,7 +281,7 @@ func concordanceRequest(a *Args, c *Conf, ids []int) ([]byte, error) {
 
 	b, err := json.Marshal(req)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error on json.Marshal():\n%v\n", err))
+		return nil, errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
 	}
 
 	return b, nil
@@ -294,18 +294,18 @@ func concordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in http.Post():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in http.Post(): %v", err))
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in io.ReadAll(): %v", err))
 	}
 
 	err = json.Unmarshal(b, concResp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
 	}
 
 	return nil
@@ -331,31 +331,31 @@ func (c *Concordance) run(a *Args, conf *Conf) error {
 
 	ids, err := dhlabIDs(a)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in dhlabIDs():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in dhlabIDs(): %v", err))
 	}
 	if ids == nil {
-		return errors.New(fmt.Sprintf("No dhlabIDs were found in %s.",
+		return errors.New(fmt.Sprintf("no dhlabIDs were found in %s",
 			filepath.Join(a.Directory, "corpus.json")))
 	}
 
 	req, err := concordanceRequest(a, conf, ids)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in concordanceRequest():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in concordanceRequest(): %v", err))
 	}
 
 	err = concordanceResponse(req, resp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in concordanceResponse():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in concordanceResponse(): %v", err))
 	}
 
 	err = concordance(resp, c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in concordance():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in concordance(): %v", err))
 	}
 
 	err = marshal(filepath.Join(a.Directory, "concordance.json"), c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
 	}
 
 	return nil
@@ -376,7 +376,7 @@ func writeFilesForTagging(conc *Concordance, p string) error {
 				strconv.Itoa(i)+"-"+strconv.FormatInt(time.Now().UTC().UnixMicro(), 10))
 			err := os.WriteFile(name, []byte(line), 0666)
 			if err != nil {
-				return errors.New(fmt.Sprintf("Error in os.WriteFile() with path: %s.\n%v\n", name, err))
+				return errors.New(fmt.Sprintf("error in os.WriteFile() with path %s: %v", name, err))
 			}
 		}
 
@@ -389,29 +389,29 @@ func tagFiles(p string) error {
 	cmd := exec.Command("python", "./tagger.py", p, p)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in cmd.StdoutPipe():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in cmd.StdoutPipe(): %v", err))
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in cmd.StderrPipe():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in cmd.StderrPipe(): %v", err))
 	}
 
 	if err := cmd.Start(); err != nil {
-		return errors.New(fmt.Sprintf("Error in cmd.Start():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in cmd.Start(): %v", err))
 	}
 
 	tOut, err := io.ReadAll(stdout)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll() (stdout):\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in io.ReadAll() (stdout): %v", err))
 	}
 
 	tErr, _ := io.ReadAll(stderr)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll() (stderr):\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in io.ReadAll() (stderr): %v", err))
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return errors.New(fmt.Sprintf("Error in cmd.Wait():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in cmd.Wait(): %v", err))
 	}
 
 	fmt.Printf("%s\n", tOut)
@@ -426,27 +426,27 @@ func (*Tag) run(a *Args, _ *Conf) error {
 	p := filepath.Join(a.Directory, "tagged")
 	err := os.MkdirAll(p, 0775)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.Mkdir(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in os.Mkdir(): %v\n", err))
 	}
 
 	err = unmarshal(filepath.Join(a.Directory, "concordance.json"), conc)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in unmarshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in unmarshal(): %v", err))
 	}
 
 	err = writeFilesForTagging(conc, p)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in writeFilesForTagging():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in writeFilesForTagging(): %v", err))
 	}
 
 	err = tagFiles(p)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in tagFiles():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in tagFiles(): %v", err))
 	}
 
 	err = os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0666)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in os.WriteFile(): %v", err))
 	}
 
 	return nil
@@ -484,7 +484,7 @@ func dhlabID(s string) (int, error) {
 	re := regexp.MustCompile("^/.+/([[:digit:]]+)-.+$")
 	id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
 	if err != nil {
-		return 0, errors.New(fmt.Sprintf("Error in strconv.Atoi():\n%v\n", err))
+		return 0, errors.New(fmt.Sprintf("error in strconv.Atoi(): %v", err))
 	}
 
 	return id, nil
@@ -520,7 +520,7 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.ReadDir():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in os.ReadDir(): %v", err))
 	}
 
 	for _, file := range files {
@@ -532,12 +532,12 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 	for _, t := range tagged {
 		dhlabId, err := dhlabID(t)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Error in dhlabID():\n%v\n", err))
+			return errors.New(fmt.Sprintf("error in dhlabID(): %v", err))
 		}
 
 		fd, err := os.Open(t)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Error in os.Open() with %s:\n%v\n",
+			return errors.New(fmt.Sprintf("error in os.Open() with %s: %v",
 				t, err))
 		}
 
@@ -546,17 +546,17 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 			entry := &TaggedEntry{}
 			err = json.Unmarshal(s.Bytes(), &entry)
 			if err != nil {
-				return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+				return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
 			}
 
 			err = matchingWords(entry, conf, dhlabId, f)
 			if err != nil {
-				return errors.New(fmt.Sprintf("Error in matchingWords():\n%v\n", err))
+				return errors.New(fmt.Sprintf("error in matchingWords(): %v", err))
 			}
 		}
 
 		if err = s.Err(); err != nil {
-			return errors.New(fmt.Sprintf("Error while scanning file %s:\n%v\n",
+			return errors.New(fmt.Sprintf("error while scanning %s: %v",
 				t, err))
 		}
 
@@ -566,7 +566,7 @@ func (f *Filter) run(a *Args, conf *Conf) error {
 
 	err = marshal(filepath.Join(a.Directory, "filter.json"), f)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in marshal() with filter.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in marshal() with filter.json: %v", err))
 	}
 
 	return nil
@@ -609,12 +609,12 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 
 	err := unmarshal(filepath.Join(a.Directory, "filter.json"), fil)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in unmarshal() with filter.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in unmarshal() with filter.json: %v", err))
 	}
 
 	err = unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in unmarshal() with corpus.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in unmarshal() with corpus.json: %v", err))
 	}
 
 	for id, words := range fil.Words {
@@ -634,7 +634,7 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 
 	err = marshal(filepath.Join(a.Directory, "collate.json"), c)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in marshal() with collate.json:\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in marshal() with collate.json: %v", err))
 	}
 
 	var records [][]string
@@ -647,7 +647,7 @@ func (c *Collate) run(a *Args, conf *Conf) error {
 
 	err = writeCsv(filepath.Join(a.Directory, "collate.csv"), records)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in writeCsv():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in writeCsv(): %v", err))
 	}
 
 	return nil
@@ -671,7 +671,7 @@ func uniqueDir(dir string, config string) (string, error) {
 
 	err := os.MkdirAll(newDir, 0755)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error on os.MkdirAll(): %v\n", err))
+		return "", errors.New(fmt.Sprintf("error in os.MkdirAll(): %v\n", err))
 	}
 
 	return newDir, nil
@@ -684,20 +684,20 @@ func copyConfig(dir string, config string) error {
 
 	src, err := os.Open(config)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error on os.Open(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in os.Open(): %v\n", err))
 	}
 	defer src.Close()
 
 	p = filepath.Join(dir, filepath.Base(config))
 	dst, err = os.OpenFile(p, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error on os.OpenFile(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in os.OpenFile(): %v\n", err))
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error on io.Copy(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in io.Copy(): %v\n", err))
 	}
 
 	return nil
@@ -718,14 +718,14 @@ func fileExists(s string) bool {
 func writeCsv(path string, rows [][]string) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.OpenFile(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in os.OpenFile(): %v\n", err))
 	}
 	defer f.Close()
 
 	wr := csv.NewWriter(f)
 	err = wr.WriteAll(rows)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in csv.WriteAll(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in csv.WriteAll(): %v\n", err))
 	}
 
 	return nil
@@ -737,18 +737,18 @@ func unmarshal(p string, s any) error {
 
 	f, err := os.Open(p)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.Open():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in os.Open(): %v", err))
 	}
 	defer f.Close()
 
 	b, err = io.ReadAll(f)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in io.ReadAll():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in io.ReadAll(): %v", err))
 	}
 
 	err = json.Unmarshal(b, s)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Unmarshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
 	}
 
 	return nil
@@ -758,12 +758,12 @@ func unmarshal(p string, s any) error {
 func marshal(p string, s any) error {
 	b, err := json.Marshal(s)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in json.Marshal():\n%v\n", err))
+		return errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
 	}
 
 	err = os.WriteFile(p, b, 0666)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in os.WriteFile() with %s:\n%v\n", p, err))
+		return errors.New(fmt.Sprintf("error in os.WriteFile() with %s: %v", p, err))
 	}
 
 	return nil
@@ -807,7 +807,7 @@ func main() {
 		// the variables accordingly.
 		err = unmarshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in unmarshal():\n%v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
+			fmt.Fprintf(os.Stderr, "error in unmarshal(): %v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
 			os.Exit(1)
 		}
 	} else {
@@ -818,13 +818,13 @@ func main() {
 		// The '-directory' flag is changed to the new, unique directory.
 		directory, err = uniqueDir(directory, config)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in uniqueDir():\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "error in uniqueDir(): %v", err)
 			os.Exit(1)
 		}
 
 		err = copyConfig(directory, config)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in copyConfig():\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "error in copyConfig(): %v", err)
 			os.Exit(1)
 		}
 
@@ -841,14 +841,14 @@ func main() {
 		args.To = to
 		err = marshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in marshal():\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "error in marshal(): %v", err)
 			os.Exit(1)
 		}
 	}
 
 	err = unmarshal(filepath.Join(directory, args.ConfigFile), conf)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error in unmarshal():\n%v\n", err)
+		fmt.Fprintf(os.Stderr, "error in unmarshal(): %v", err)
 		os.Exit(1)
 	}
 	stages := []WorkflowStage{corp, conc, tag, filter, coll}
@@ -857,7 +857,7 @@ func main() {
 
 			err = s.run(args, conf)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error in %T.Run():\n%v\n", s, err)
+				fmt.Fprintf(os.Stderr, "error in %T.Run(): %v", s, err)
 				os.Exit(1)
 			}
 		}
