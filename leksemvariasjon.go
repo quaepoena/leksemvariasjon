@@ -384,7 +384,7 @@ func writeFilesToBeTagged(conc *Concordance, p string) error {
 	return nil
 }
 
-func (*Tag) run(a *Args, conf *Conf) error {
+func (*Tag) run(a *Args, _ *Conf) error {
 	var conc *Concordance = &Concordance{}
 
 	p := filepath.Join(a.Directory, "tagged")
