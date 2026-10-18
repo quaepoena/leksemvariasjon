@@ -16,11 +16,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/quaepoena/leksemvariasjon/collate"
 	"github.com/quaepoena/leksemvariasjon/config"
 	"github.com/quaepoena/leksemvariasjon/dhlab"
-	"github.com/quaepoena/leksemvariasjon/filter"
-	"github.com/quaepoena/leksemvariasjon/tag"
+	"github.com/quaepoena/leksemvariasjon/process"
 )
 
 // Flags.
@@ -173,9 +171,9 @@ func main() {
 
 	cor := &dhlab.Corpus{}
 	con := &dhlab.Concordance{}
-	t := &tag.Tag{}
-	f := &filter.Filter{}
-	col := &collate.Collate{}
+	t := &process.Tag{}
+	f := &process.Filter{}
+	col := &process.Collate{}
 
 	stages := []config.WorkflowStage{cor, con, t, f, col}
 	for _, s := range stages {
