@@ -79,8 +79,8 @@ type Conf struct {
 	Lemmas              []Lemma
 }
 
-// Interface WorkflowStage represents the repetitive tasks for each step of the
-// program.
+// Interface WorkflowStage represents the similarly structured tasks for each
+// step of the program.
 type WorkflowStage interface {
 	run(*Args, *Conf) error
 	finished(*Args) bool
