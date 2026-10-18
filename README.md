@@ -197,4 +197,5 @@ being tagged, simply redirect stdout:
 
 ### Troubleshooting
 
-A helper program exists to look up interesting/suspicious concordance lines.
+A helper program (in the works) will be written to enable easy look-up
+interesting/suspicious concordance lines.
