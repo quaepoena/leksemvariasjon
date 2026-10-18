@@ -1,3 +1,6 @@
+// Package config deals with saving and reading the various options specified on
+// the command-line and in the configuration file. A few often-used helper
+// functions are located here as well.
 package config
 
 import (

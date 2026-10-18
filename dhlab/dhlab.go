@@ -1,3 +1,5 @@
+// Package dhlab controls the interaction with the National Library's DHLAB API.
+// Specifically the build_corpus and corp endpoints are called.
 package dhlab
 
 import (

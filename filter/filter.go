@@ -1,9 +1,5 @@
-// Command leksemvariasjon displays lexeme variation over Norwegian texts.
-// The user creates a configuration file specifying which words and
-// morphological features he/she is interested in. The National Library of
-// Norway's DHLAB API is queried to find concordance lines with these words
-// which are then tagged and the results are filtered and put into a CSV.
-// See README.md for more information and usage examples.
+// Package filter filters the tagged results after lemma, word form, and
+// morphological features, as defined in the configuration file.
 package filter
 
 import (
