@@ -66,7 +66,9 @@ func corpusRequest(a *config.Args, c *config.Conf) ([]byte, error) {
         }
     }
 
-    req.Doctype = a.Doctype
+    if a.Doctype != "" {
+        req.Doctype = a.Doctype
+    }
     req.FromYear = a.From
     req.ToYear = a.To + 1 // Server-side "to_year" is exclusive.
     req.Limit = a.CorpLimit

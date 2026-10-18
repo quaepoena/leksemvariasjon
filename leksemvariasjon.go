@@ -122,8 +122,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if resume == false && (configFile == "" || doctype == "" || from == 0 || to == 0) {
-		fmt.Fprintln(os.Stderr, "Flags '-configFile', '-doctype', '-from', and '-to' must be set when not using '-resume'.")
+	if resume == false && (configFile == "" || from == 0 || to == 0) {
+		fmt.Fprintln(os.Stderr, "Flags '-configFile', '-from', and '-to' must be set when not using '-resume'.")
 		flag.Usage()
 		os.Exit(1)
 	}
