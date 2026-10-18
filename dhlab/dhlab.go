@@ -68,7 +68,7 @@ func corpusRequest(a *config.Args, c *config.Conf) ([]byte, error) {
 
     req.Doctype = a.Doctype
     req.FromYear = a.From
-    req.ToYear = a.To + 1 // "to_year" on the server side is exclusive.
+    req.ToYear = a.To + 1 // Server-side "to_year" is exclusive.
     req.Limit = a.CorpLimit
     req.Fulltext = strings.Join(words, " OR ")
     req.Lang = c.Language
