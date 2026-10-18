@@ -124,7 +124,7 @@ func corpus(resp *CorpusResponse, c *Corpus) error {
 // Run builds a Corpus object and writes it to disk as JSON.
 func (c *Corpus) Run(a *config.Args, conf *config.Conf) error {
     var req []byte
-    var resp *CorpusResponse = &CorpusResponse{}
+    resp := &CorpusResponse{}
 
     req, err := corpusRequest(a, conf)
     if err != nil {
@@ -180,7 +180,7 @@ type Concordance struct {
 // to disk as JSON.
 func dhlabIDs(a *config.Args) ([]int, error) {
     var ids []int
-    var corp *Corpus = &Corpus{}
+    corp := &Corpus{}
 
     err := config.Unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
     if err != nil {
@@ -261,7 +261,7 @@ func concordance(concResp *ConcordanceResponse, conc *Concordance) error {
 // writh the results to disk as JSON.
 func (c *Concordance) Run(a *config.Args, conf *config.Conf) error {
     var ids []int
-    var resp *ConcordanceResponse = &ConcordanceResponse{}
+    resp := &ConcordanceResponse{}
 
     ids, err := dhlabIDs(a)
     if err != nil {
