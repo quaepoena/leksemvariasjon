@@ -98,24 +98,33 @@ func main() {
 
 	flag.Parse()
 
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "\n%s usage:\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
 	if directory == "" {
 		fmt.Fprintln(os.Stderr, "Flag '-directory' must be set.")
+		flag.Usage()
 		os.Exit(1)
 	}
 
 	if from > to {
 		fmt.Fprintln(os.Stderr, "Flag '-to' must be greater than or equal to '-from'.")
+		flag.Usage()
 		os.Exit(1)
 	}
 
 	if resume == true && (configFile != "" || doctype != "" || from != 0 || to != 0) {
 		fmt.Fprintln(os.Stderr, "Flag '-resume' isn't meant to be combined ",
 			"with '-configFile', '-doctype', '-from' or '-to'.")
+		flag.Usage()
 		os.Exit(1)
 	}
 
 	if resume == false && (configFile == "" || doctype == "" || from == 0 || to == 0) {
 		fmt.Fprintln(os.Stderr, "Flags '-configFile', '-doctype', '-from', and '-to' must be set when not using '-resume'.")
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -125,6 +134,7 @@ func main() {
 		err = config.Unmarshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in config.Unmarshal(): %v\nThis is a resumptive run. Did you specify the already-existing output directory from a previous run?", err)
+			flag.Usage()
 			os.Exit(1)
 		}
 	} else {
@@ -136,12 +146,14 @@ func main() {
 		directory, err = uniqueDir(directory, configFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in uniqueDir(): %v", err)
+			flag.Usage()
 			os.Exit(1)
 		}
 
 		err = copyConfig(directory, configFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in copyConfig(): %v", err)
+			flag.Usage()
 			os.Exit(1)
 		}
 
@@ -159,6 +171,7 @@ func main() {
 		err = config.Marshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in config.Marshal(): %v", err)
+			flag.Usage()
 			os.Exit(1)
 		}
 	}
@@ -166,6 +179,7 @@ func main() {
 	err = config.Unmarshal(filepath.Join(directory, args.ConfigFile), conf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error in config.Unmarshal(): %v", err)
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -182,6 +196,7 @@ func main() {
 			err = s.Run(args, conf)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error in %T.Run(): %v", s, err)
+				flag.Usage()
 				os.Exit(1)
 			}
 		}
