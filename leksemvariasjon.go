@@ -94,13 +94,8 @@ func copyConfig(dir string, config string) error {
 }
 
 func main() {
-	var args *config.Args = &config.Args{}
-	var conf *config.Conf = &config.Conf{}
-	var corp *dhlab.Corpus = &dhlab.Corpus{}
-	var conc *dhlab.Concordance = &dhlab.Concordance{}
-	var tag *tag.Tag = &tag.Tag{}
-	var filter *filter.Filter = &filter.Filter{}
-	var coll *collate.Collate = &collate.Collate{}
+	args := &config.Args{}
+	conf := &config.Conf{}
 	var err error
 
 	flag.Parse()
@@ -175,7 +170,14 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error in config.Unmarshal(): %v", err)
 		os.Exit(1)
 	}
-	stages := []config.WorkflowStage{corp, conc, tag, filter, coll}
+
+	cor := &dhlab.Corpus{}
+	con := &dhlab.Concordance{}
+	t := &tag.Tag{}
+	f := &filter.Filter{}
+	col := &collate.Collate{}
+
+	stages := []config.WorkflowStage{cor, con, t, f, col}
 	for _, s := range stages {
 		if !s.Finished(args) {
 
