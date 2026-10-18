@@ -60,7 +60,7 @@ func tagFiles(p string) error {
         return errors.New(fmt.Sprintf("error in io.ReadAll() (stdout): %v", err))
     }
 
-    tErr, _ := io.ReadAll(stderr)
+    tErr, err := io.ReadAll(stderr)
     if err != nil {
         return errors.New(fmt.Sprintf("error in io.ReadAll() (stderr): %v", err))
     }
