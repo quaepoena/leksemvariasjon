@@ -145,14 +145,14 @@ func main() {
 		// The '-directory' flag is changed to the new, unique directory.
 		directory, err = uniqueDir(directory, configFile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error in uniqueDir(): %v", err)
+			fmt.Fprintf(os.Stderr, "error in uniqueDir(): %v\n", err)
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		err = copyConfig(directory, configFile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error in copyConfig(): %v", err)
+			fmt.Fprintf(os.Stderr, "error in copyConfig(): %v\n", err)
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -170,7 +170,7 @@ func main() {
 		args.To = to
 		err = config.Marshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error in config.Marshal(): %v", err)
+			fmt.Fprintf(os.Stderr, "error in config.Marshal(): %v\n", err)
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -178,7 +178,7 @@ func main() {
 
 	err = config.Unmarshal(filepath.Join(directory, args.ConfigFile), conf)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error in config.Unmarshal(): %v", err)
+		fmt.Fprintf(os.Stderr, "error in config.Unmarshal(): %v\n", err)
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -195,7 +195,7 @@ func main() {
 
 			err = s.Run(args, conf)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "error in %T.Run(): %v", s, err)
+				fmt.Fprintf(os.Stderr, "error in %T.Run(): %v\n", s, err)
 				flag.Usage()
 				os.Exit(1)
 			}

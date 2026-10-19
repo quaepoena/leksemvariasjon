@@ -77,7 +77,7 @@ func corpusRequest(a *config.Args, c *config.Conf) ([]byte, error) {
 
     b, err := json.Marshal(req)
     if err != nil {
-        return nil, errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
+        return nil, errors.New(fmt.Sprintf("error in json.Marshal(): %v\n", err))
     }
 
     return b, nil
@@ -90,18 +90,18 @@ func corpusResponse(req []byte, c *CorpusResponse) error {
 
     resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
     if err != nil {
-        return errors.New(fmt.Sprintf("error in http.Post(): %v", err))
+        return errors.New(fmt.Sprintf("error in http.Post(): %v\n", err))
     }
     defer resp.Body.Close()
 
     b, err := io.ReadAll(resp.Body)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in io.ReadAll(): %v", err))
+        return errors.New(fmt.Sprintf("error in io.ReadAll(): %v\n", err))
     }
 
     err = json.Unmarshal(b, c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v\n", err))
     }
 
     return nil
@@ -130,22 +130,22 @@ func (c *Corpus) Run(a *config.Args, conf *config.Conf) error {
 
     req, err := corpusRequest(a, conf)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in corpusRequest(): %v", err))
+        return errors.New(fmt.Sprintf("error in corpusRequest(): %v\n", err))
     }
 
     err = corpusResponse(req, resp)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in corpusResponse(): %v", err))
+        return errors.New(fmt.Sprintf("error in corpusResponse(): %v\n", err))
     }
 
     err = corpus(resp, c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in corpus(): %v", err))
+        return errors.New(fmt.Sprintf("error in corpus(): %v\n", err))
     }
 
     err = config.Marshal(filepath.Join(a.Directory, "corpus.json"), c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Marshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in config.Marshal(): %v\n", err))
     }
 
     return nil
@@ -186,7 +186,7 @@ func dhlabIDs(a *config.Args) ([]int, error) {
 
     err := config.Unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
     if err != nil {
-        return nil, errors.New(fmt.Sprintf("error in config.Unmarshal(): %v", err))
+        return nil, errors.New(fmt.Sprintf("error in config.Unmarshal(): %v\n", err))
     }
 
     for i := range corp.DHLabID {
@@ -217,7 +217,7 @@ func concordanceRequest(a *config.Args, c *config.Conf, ids []int) ([]byte, erro
 
     b, err := json.Marshal(req)
     if err != nil {
-        return nil, errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
+        return nil, errors.New(fmt.Sprintf("error in json.Marshal(): %v\n", err))
     }
 
     return b, nil
@@ -230,18 +230,18 @@ func concordanceResponse(req []byte, concResp *ConcordanceResponse) error {
 
     resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
     if err != nil {
-        return errors.New(fmt.Sprintf("error in http.Post(): %v", err))
+        return errors.New(fmt.Sprintf("error in http.Post(): %v\n", err))
     }
     defer resp.Body.Close()
 
     b, err := io.ReadAll(resp.Body)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in io.ReadAll(): %v", err))
+        return errors.New(fmt.Sprintf("error in io.ReadAll(): %v\n", err))
     }
 
     err = json.Unmarshal(b, concResp)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v\n", err))
     }
 
     return nil
@@ -267,7 +267,7 @@ func (c *Concordance) Run(a *config.Args, conf *config.Conf) error {
 
     ids, err := dhlabIDs(a)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in dhlabIDs(): %v", err))
+        return errors.New(fmt.Sprintf("error in dhlabIDs(): %v\n", err))
     }
     if ids == nil {
         return errors.New(fmt.Sprintf("no dhlabIDs were found in %s",
@@ -276,22 +276,22 @@ func (c *Concordance) Run(a *config.Args, conf *config.Conf) error {
 
     req, err := concordanceRequest(a, conf, ids)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in concordanceRequest(): %v", err))
+        return errors.New(fmt.Sprintf("error in concordanceRequest(): %v\n", err))
     }
 
     err = concordanceResponse(req, resp)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in concordanceResponse(): %v", err))
+        return errors.New(fmt.Sprintf("error in concordanceResponse(): %v\n", err))
     }
 
     err = concordance(resp, c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in concordance(): %v", err))
+        return errors.New(fmt.Sprintf("error in concordance(): %v\n", err))
     }
 
     err = config.Marshal(filepath.Join(a.Directory, "concordance.json"), c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Marshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in config.Marshal(): %v\n", err))
     }
 
     return nil

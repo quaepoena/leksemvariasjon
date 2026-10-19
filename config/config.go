@@ -58,18 +58,18 @@ func Unmarshal(p string, s any) error {
 
     f, err := os.Open(p)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in os.Open(): %v", err))
+        return errors.New(fmt.Sprintf("error in os.Open(): %v\n", err))
     }
     defer f.Close()
 
     b, err = io.ReadAll(f)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in io.ReadAll(): %v", err))
+        return errors.New(fmt.Sprintf("error in io.ReadAll(): %v\n", err))
     }
 
     err = json.Unmarshal(b, s)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v\n", err))
     }
 
     return nil
@@ -78,12 +78,12 @@ func Unmarshal(p string, s any) error {
 func Marshal(p string, s any) error {
     b, err := json.Marshal(s)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in json.Marshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in json.Marshal(): %v\n", err))
     }
 
     err = os.WriteFile(p, b, 0666)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in os.WriteFile() with %s: %v", p, err))
+        return errors.New(fmt.Sprintf("error in os.WriteFile() with %s: %v\n", p, err))
     }
 
     return nil

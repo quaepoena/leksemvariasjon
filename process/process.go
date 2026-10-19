@@ -34,7 +34,7 @@ func prepareForTagging(conc *dhlab.Concordance, p string) error {
                 strconv.Itoa(i) + "-" +  strconv.FormatInt(time.Now().UTC().UnixMicro(), 10))
             err := os.WriteFile(name, []byte(line), 0666)
             if err != nil {
-                return errors.New(fmt.Sprintf("error in os.WriteFile() with path %s: %v", name, err))
+                return errors.New(fmt.Sprintf("error in os.WriteFile() with path %s: %v\n", name, err))
             }
         }
 
@@ -50,29 +50,29 @@ func tagFiles(p string) error {
     cmd := exec.Command("python", "./tagger.py", p, p)
     stdout, err := cmd.StdoutPipe()
     if err != nil {
-        return errors.New(fmt.Sprintf("error in cmd.StdoutPipe(): %v", err))
+        return errors.New(fmt.Sprintf("error in cmd.StdoutPipe(): %v\n", err))
     }
     stderr, err := cmd.StderrPipe()
     if err != nil {
-        return errors.New(fmt.Sprintf("error in cmd.StderrPipe(): %v", err))
+        return errors.New(fmt.Sprintf("error in cmd.StderrPipe(): %v\n", err))
     }
 
     if err := cmd.Start(); err != nil {
-        return errors.New(fmt.Sprintf("error in cmd.Start(): %v", err))
+        return errors.New(fmt.Sprintf("error in cmd.Start(): %v\n", err))
     }
 
     tOut, err := io.ReadAll(stdout)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in io.ReadAll() (stdout): %v", err))
+        return errors.New(fmt.Sprintf("error in io.ReadAll() (stdout): %v\n", err))
     }
 
     tErr, err := io.ReadAll(stderr)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in io.ReadAll() (stderr): %v", err))
+        return errors.New(fmt.Sprintf("error in io.ReadAll() (stderr): %v\n", err))
     }
 
     if err := cmd.Wait(); err != nil {
-        return errors.New(fmt.Sprintf("error in cmd.Wait(): %v", err))
+        return errors.New(fmt.Sprintf("error in cmd.Wait(): %v\n", err))
     }
 
     fmt.Fprintf(os.Stdout, "%s\n", tOut)
@@ -93,22 +93,22 @@ func (*Tag) Run(a *config.Args, _ *config.Conf) error {
 
     err = config.Unmarshal(filepath.Join(a.Directory, "concordance.json"), conc)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Unmarshal(): %v", err))
+        return errors.New(fmt.Sprintf("error in config.Unmarshal(): %v\n", err))
     }
 
     err = prepareForTagging(conc, p)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in prepareForTagging(): %v", err))
+        return errors.New(fmt.Sprintf("error in prepareForTagging(): %v\n", err))
     }
 
     err = tagFiles(p)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in tagFiles(): %v", err))
+        return errors.New(fmt.Sprintf("error in tagFiles(): %v\n", err))
     }
 
     err = os.WriteFile(filepath.Join(a.Directory, "taggingFinished.txt"), []byte{}, 0666)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in os.WriteFile(): %v", err))
+        return errors.New(fmt.Sprintf("error in os.WriteFile(): %v\n", err))
     }
 
     return nil
@@ -149,7 +149,7 @@ func dhlabID(s string) (int, error) {
     re := regexp.MustCompile("^/.+/([[:digit:]]+)-.+$")
     id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
     if err != nil {
-        return 0, errors.New(fmt.Sprintf("error in strconv.Atoi(): %v", err))
+        return 0, errors.New(fmt.Sprintf("error in strconv.Atoi(): %v\n", err))
     }
 
     return id, nil
@@ -190,7 +190,7 @@ func (f *Filter) Run(a *config.Args, conf *config.Conf) error {
 
     files, err := os.ReadDir(dir)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in os.ReadDir(): %v", err))
+        return errors.New(fmt.Sprintf("error in os.ReadDir(): %v\n", err))
     }
 
     for _, file := range files {
@@ -202,12 +202,12 @@ func (f *Filter) Run(a *config.Args, conf *config.Conf) error {
     for _, t := range tagged {
         dhlabId, err := dhlabID(t)
         if err != nil {
-            return errors.New(fmt.Sprintf("error in dhlabID(): %v", err))
+            return errors.New(fmt.Sprintf("error in dhlabID(): %v\n", err))
         }
 
         fd, err := os.Open(t)
         if err != nil {
-            return errors.New(fmt.Sprintf("error in os.Open() with %s: %v",
+            return errors.New(fmt.Sprintf("error in os.Open() with %s: %v\n",
                 t, err))
         }
 
@@ -216,17 +216,17 @@ func (f *Filter) Run(a *config.Args, conf *config.Conf) error {
             entry := &TaggedEntry{}
             err = json.Unmarshal(s.Bytes(), &entry)
             if err != nil {
-                return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v", err))
+                return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v\n", err))
             }
 
             err = matchingWords(entry, conf, dhlabId, f)
             if err != nil {
-                return errors.New(fmt.Sprintf("error in matchingWords(): %v", err))
+                return errors.New(fmt.Sprintf("error in matchingWords(): %v\n", err))
             }
         }
 
         if err = s.Err(); err != nil {
-            return errors.New(fmt.Sprintf("error while scanning %s: %v",
+            return errors.New(fmt.Sprintf("error while scanning %s: %v\n",
                 t, err))
         }
 
@@ -235,7 +235,7 @@ func (f *Filter) Run(a *config.Args, conf *config.Conf) error {
 
     err = config.Marshal(filepath.Join(a.Directory, "filter.json"), f)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Marshal() with filter.json: %v", err))
+        return errors.New(fmt.Sprintf("error in config.Marshal() with filter.json: %v\n", err))
     }
 
     return nil
@@ -300,12 +300,12 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
 
     err := config.Unmarshal(filepath.Join(a.Directory, "filter.json"), fil)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Unmarshal() with filter.json: %v", err))
+        return errors.New(fmt.Sprintf("error in config.Unmarshal() with filter.json: %v\n", err))
     }
 
     err = config.Unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Unmarshal() with corpus.json: %v", err))
+        return errors.New(fmt.Sprintf("error in config.Unmarshal() with corpus.json: %v\n", err))
     }
 
     for id, words := range fil.Words {
@@ -326,7 +326,7 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
 
     err = config.Marshal(filepath.Join(a.Directory, "results.json"), c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Marshal() with results.json: %v", err))
+        return errors.New(fmt.Sprintf("error in config.Marshal() with results.json: %v\n", err))
     }
 
     var records [][]string
@@ -339,7 +339,7 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
 
     err = writeCsv(filepath.Join(a.Directory, "results.csv"), records)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in writeCsv(): %v", err))
+        return errors.New(fmt.Sprintf("error in writeCsv(): %v\n", err))
     }
 
     return nil
