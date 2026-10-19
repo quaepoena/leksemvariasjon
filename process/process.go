@@ -245,21 +245,21 @@ func (*Filter) Finished(a *config.Args) bool {
     return config.FileExists(filepath.Join(a.Directory, "filter.json"))
 }
 
-// Struct Collation contains all the collected information on a given word
+// Struct Occurrence contains all the collected information on a given word
 // matching the criteria given in the config file.
-type Collation struct {
+type Occurrence struct {
     DhlabId, Year, Index int
     Doctype, Form, Lemma, LangDhlab, LangId, URN, Value string
 }
 
-// Struct Collate contains a list of words matching the criteria given in the
+// Struct Results contains a list of words matching the criteria given in the
 // config file.
-type Collate struct {
-    Collations []Collation
+type Results struct {
+    Occurrences []Occurrence
 }
 
-// Function record creates CSV records from a Collation struct.
-func record(coll *Collation) []string {
+// Function record creates CSV records from an Occurrence struct.
+func record(coll *Occurrence) []string {
     var fields []string
 
     fields = append(fields, strconv.Itoa(coll.DhlabId))
@@ -294,7 +294,7 @@ func writeCsv(path string, rows [][]string) error {
 
 // Run collates the filtered results with the information from the (saved)
 // dhlab.Corpus struct. The results are written to disk as both JSON and CSV.
-func (c *Collate) Run(a *config.Args, _ *config.Conf) error {
+func (c *Results) Run(a *config.Args, _ *config.Conf) error {
     corp := &dhlab.Corpus{}
     fil := &Filter{}
 
@@ -310,7 +310,7 @@ func (c *Collate) Run(a *config.Args, _ *config.Conf) error {
 
     for id, words := range fil.Words {
         for i, word := range words {
-            c.Collations = append(c.Collations, Collation{
+            c.Occurrences = append(c.Occurrences, Occurrence{
                 DhlabId: id,
                 Index: i,
                 Form: word.Form,
@@ -333,7 +333,7 @@ func (c *Collate) Run(a *config.Args, _ *config.Conf) error {
     header := []string{"dhlabid", "index", "urn", "doctype", "year", "form",
         "lemma", "value", "lang_dhlab", "lang_id"}
     records = append(records, header)
-    for _, c := range c.Collations {
+    for _, c := range c.Occurrences {
         records = append(records, record(&c))
     }
 
@@ -345,6 +345,6 @@ func (c *Collate) Run(a *config.Args, _ *config.Conf) error {
     return nil
 }
 
-func (*Collate) Finished(a *config.Args) bool {
+func (*Results) Finished(a *config.Args) bool {
     return config.FileExists(filepath.Join(a.Directory, "collate.csv"))
 }

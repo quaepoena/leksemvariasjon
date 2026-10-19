@@ -187,9 +187,9 @@ func main() {
 	con := &dhlab.Concordance{}
 	t := &process.Tag{}
 	f := &process.Filter{}
-	col := &process.Collate{}
+	r := &process.Results{}
 
-	stages := []config.WorkflowStage{cor, con, t, f, col}
+	stages := []config.WorkflowStage{cor, con, t, f, r}
 	for _, s := range stages {
 		if !s.Finished(args) {
 
