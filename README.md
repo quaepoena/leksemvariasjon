@@ -120,7 +120,7 @@ specified in DHLab's `build_corpus` call. The remaining fields, `attribute` and
 afterward.
 
 - `attribute`: A user-defined name for the given grammatical feature being researched.
-- `language`: `nob` or `nno`.
+- `language`: `nob` or `nno`, though it can be empty.
 - `lemmas`: A list of lemmas. (An example with more than one is shown below.)
 - `lemma`: The lemma to match against (as reported by the tagger).
 - `words`: A list of word forms for a given lemma that demonstrate the given feature.
