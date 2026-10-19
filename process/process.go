@@ -168,7 +168,7 @@ func matchingWords(entry *TaggedEntry, c *config.Conf, dhlabId int, f *Filter) e
                     sets.New(taggedWord.Tags...).IsSuperset(
                         sets.New(word.Morphology...)) {
 
-                    fil.Words[dhlabId] = append(fil.Words[dhlabId], MatchingWord{
+                    f.Words[dhlabId] = append(f.Words[dhlabId], MatchingWord{
                         Form: taggedWord.Word,
                         Lang: entry.Lang,
                         Lemma: taggedWord.Lemma,
