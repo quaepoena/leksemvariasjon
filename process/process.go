@@ -259,19 +259,19 @@ type Results struct {
 }
 
 // Function record creates CSV records from an Occurrence struct.
-func record(coll *Occurrence) []string {
+func record(o *Occurrence) []string {
     var fields []string
 
-    fields = append(fields, strconv.Itoa(coll.DhlabId))
-    fields = append(fields, strconv.Itoa(coll.Index))
-    fields = append(fields, coll.URN)
-    fields = append(fields, coll.Doctype)
-    fields = append(fields, strconv.Itoa(coll.Year))
-    fields = append(fields, coll.Form)
-    fields = append(fields, coll.Lemma)
-    fields = append(fields, coll.Value)
-    fields = append(fields, coll.LangDhlab)
-    fields = append(fields, coll.LangId)
+    fields = append(fields, strconv.Itoa(o.DhlabId))
+    fields = append(fields, strconv.Itoa(o.Index))
+    fields = append(fields, o.URN)
+    fields = append(fields, o.Doctype)
+    fields = append(fields, strconv.Itoa(o.Year))
+    fields = append(fields, o.Form)
+    fields = append(fields, o.Lemma)
+    fields = append(fields, o.Value)
+    fields = append(fields, o.LangDhlab)
+    fields = append(fields, o.LangId)
 
     return fields
 }
@@ -292,7 +292,7 @@ func writeCsv(path string, rows [][]string) error {
     return nil
 }
 
-// Run collates the filtered results with the information from the (saved)
+// Run merges the filtered results with the information from the (saved)
 // dhlab.Corpus struct. The results are written to disk as both JSON and CSV.
 func (c *Results) Run(a *config.Args, _ *config.Conf) error {
     corp := &dhlab.Corpus{}
@@ -324,9 +324,9 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
         }
     }
 
-    err = config.Marshal(filepath.Join(a.Directory, "collate.json"), c)
+    err = config.Marshal(filepath.Join(a.Directory, "results.json"), c)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in config.Marshal() with collate.json: %v", err))
+        return errors.New(fmt.Sprintf("error in config.Marshal() with results.json: %v", err))
     }
 
     var records [][]string
@@ -337,7 +337,7 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
         records = append(records, record(&c))
     }
 
-    err = writeCsv(filepath.Join(a.Directory, "collate.csv"), records)
+    err = writeCsv(filepath.Join(a.Directory, "results.csv"), records)
     if err != nil {
         return errors.New(fmt.Sprintf("error in writeCsv(): %v", err))
     }
@@ -346,5 +346,5 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
 }
 
 func (*Results) Finished(a *config.Args) bool {
-    return config.FileExists(filepath.Join(a.Directory, "collate.csv"))
+    return config.FileExists(filepath.Join(a.Directory, "results.csv"))
 }
