@@ -165,7 +165,7 @@ Nynorsk, one could use the following configuration file:
 ## Manually resuming the tagger
 
 If a run were to fail in the middle of tagging, e.g. due to a time or memory
-limit being exceeded on slurm, it is recommended to run the `tagger_restart.sh`
+limit being exceeded on slurm, it is recommended to run the `restart_tagger.sh`
 script provided in the repo to restart the tagger and rerun `leksemvariasjon`.
 This prevents having to start the tagging from the beginning and thereby losing
 a (potentially) significant amount of time. Otherwise manual moving of
