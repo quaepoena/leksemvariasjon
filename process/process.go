@@ -146,7 +146,7 @@ type Filter struct {
 
 // Function dhlabID returns the dhlabID from a (tagged) filename.
 func dhlabID(s string) (int, error) {
-    re := regexp.MustCompile("^/.+/([[:digit:]]+)-.+$")
+    re := regexp.MustCompile("^.+/([[:digit:]]+)-.+$")
     id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
     if err != nil {
         return 0, errors.New(fmt.Sprintf("error in strconv.Atoi(): %v\n", err))
