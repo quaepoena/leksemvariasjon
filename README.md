@@ -66,19 +66,23 @@ leksemvariasjon usage:
         The start year for the search.
   -resume
         Resume a previously started job.
+  -src string
+        The source directory for leksemvariasjon.
   -to int
         The end year for the search (inclusive).
 ```
 
-The `-directory` flag is always required. On an initial run, output files are
-written to a directory created under this directory. `-from` and `-to` specify
-an inclusive range of years. `-doctype` searches for a given document type, [as
-defined by
+The `-directory` flag is always required. On an initial run, output
+files are written to a directory created under this directory. `-from`
+and `-to` specify an inclusive range of years. `-doctype` searches for
+a given document type, [as defined by
 DHLab](https://github.com/NationalLibraryOfNorway/DHLAB/blob/b69775f4fa54d75855685e3c1c761c92d62442b4/dhlab/text/corpus.py#L24),
-though it can be blank. `-configFile` is the path to the JSON config file (see
-below). `-corpLimit` and <br> `-confLimit` set limits on, respectively, the number of
-results from DHLab's `build_corpus` and `conc` API calls. The usage of `-resume`
-is described below.
+though it can be blank. `-configFile` is the path to the JSON config
+file (see below). `-corpLimit` and <br> `-confLimit` set limits on,
+respectively, the number of results from DHLab's `build_corpus` and
+`conc` API calls. The source directory needs to be specified with
+`-src` so that the program knows where the tagger (wrapper) is
+located. The usage of `-resume` is described below.
 
 ### Resuming a previous run
 
