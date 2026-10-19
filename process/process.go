@@ -26,8 +26,8 @@ import (
 // directly to disk. Therefore we don't need to keep any information concerning it.
 type Tag struct {}
 
-// Function writeFilesForTagging writes a file to disk for each concordance line.
-func writeFilesForTagging(conc *dhlab.Concordance, p string) error {
+// Function prepareForTagging writes a file to disk for each concordance line.
+func prepareForTagging(conc *dhlab.Concordance, p string) error {
     for i, v := range conc.Lines {
         for _, line := range v {
             name := filepath.Join(p,
@@ -96,9 +96,9 @@ func (*Tag) Run(a *config.Args, _ *config.Conf) error {
         return errors.New(fmt.Sprintf("error in config.Unmarshal(): %v", err))
     }
 
-    err = writeFilesForTagging(conc, p)
+    err = prepareForTagging(conc, p)
     if err != nil {
-        return errors.New(fmt.Sprintf("error in writeFilesForTagging(): %v", err))
+        return errors.New(fmt.Sprintf("error in prepareForTagging(): %v", err))
     }
 
     err = tagFiles(p)
