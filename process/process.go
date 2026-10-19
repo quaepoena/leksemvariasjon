@@ -15,7 +15,6 @@ import (
     "regexp"
     "strconv"
     "strings"
-    "time"
 
     "github.com/quaepoena/leksemvariasjon/config"
     "github.com/quaepoena/leksemvariasjon/dhlab"
@@ -29,9 +28,9 @@ type Tag struct {}
 // Function prepareForTagging writes a file to disk for each concordance line.
 func prepareForTagging(conc *dhlab.Concordance, p string) error {
     for i, v := range conc.Lines {
-        for _, line := range v {
+        for j, line := range v {
             name := filepath.Join(p,
-                strconv.Itoa(i) + "-" +  strconv.FormatInt(time.Now().UTC().UnixMicro(), 10))
+                strconv.Itoa(i) + "-" + strconv.Itoa(j))
             err := os.WriteFile(name, []byte(line), 0666)
             if err != nil {
                 return errors.New(fmt.Sprintf("error in os.WriteFile() with path %s: %v\n", name, err))
@@ -136,6 +135,7 @@ type TaggedEntry struct {
 // criteria given in the config file.
 type MatchingWord struct {
     Form, Lang, Lemma, Value string
+    Index int
 }
 
 // Struct Filter maps dhlabIDs to a list of words matching the criteria given in
@@ -146,7 +146,7 @@ type Filter struct {
 
 // Function dhlabID returns the dhlabID from a (tagged) filename.
 func dhlabID(s string) (int, error) {
-    re := regexp.MustCompile("^.+/([[:digit:]]+)-.+$")
+    re := regexp.MustCompile("^.+/([[:digit:]]+)-([[:digit:]]+).tagged$")
     id, err := strconv.Atoi(re.ReplaceAllString(s, "$1"))
     if err != nil {
         return 0, errors.New(fmt.Sprintf("error in strconv.Atoi(): %v\n", err))
@@ -155,10 +155,21 @@ func dhlabID(s string) (int, error) {
     return id, nil
 }
 
+// Function index returns the index in relation to each unique DHLab ID.
+func index(s string) (int, error) {
+    re := regexp.MustCompile("^.+/([[:digit:]]+)-([[:digit:]]+).tagged$")
+    index, err := strconv.Atoi(re.ReplaceAllString(s, "$2"))
+    if err != nil {
+        return 0, errors.New(fmt.Sprintf("error in strconv.Atoi(): %v\n", err))
+    }
+
+    return index, nil
+}
+
 // Function matchingWords checks a tagged word against the criteria given in the
 // config file. If everything matches then the word is appended to Filter.Words,
 // a list of matching entries.
-func matchingWords(entry *TaggedEntry, c *config.Conf, dhlabId int, f *Filter) error {
+func matchingWords(entry *TaggedEntry, c *config.Conf, dhlabId int, index int, f *Filter) error {
     for _, lemma := range c.Lemmas {
         for _, word := range lemma.Words {
             for _, taggedWord := range entry.TaggedWords {
@@ -169,6 +180,7 @@ func matchingWords(entry *TaggedEntry, c *config.Conf, dhlabId int, f *Filter) e
                         sets.New(word.Morphology...)) {
 
                     f.Words[dhlabId] = append(f.Words[dhlabId], MatchingWord{
+                        Index: index,
                         Form: taggedWord.Word,
                         Lang: entry.Lang,
                         Lemma: taggedWord.Lemma,
@@ -205,6 +217,11 @@ func (f *Filter) Run(a *config.Args, conf *config.Conf) error {
             return errors.New(fmt.Sprintf("error in dhlabID(): %v\n", err))
         }
 
+        index, err := index(t)
+        if err != nil {
+            return errors.New(fmt.Sprintf("error in index(): %v\n", err))
+        }
+
         fd, err := os.Open(t)
         if err != nil {
             return errors.New(fmt.Sprintf("error in os.Open() with %s: %v\n",
@@ -219,7 +236,7 @@ func (f *Filter) Run(a *config.Args, conf *config.Conf) error {
                 return errors.New(fmt.Sprintf("error in json.Unmarshal(): %v\n", err))
             }
 
-            err = matchingWords(entry, conf, dhlabId, f)
+            err = matchingWords(entry, conf, dhlabId, index, f)
             if err != nil {
                 return errors.New(fmt.Sprintf("error in matchingWords(): %v\n", err))
             }
@@ -309,10 +326,10 @@ func (c *Results) Run(a *config.Args, _ *config.Conf) error {
     }
 
     for id, words := range fil.Words {
-        for i, word := range words {
+        for _, word := range words {
             c.Occurrences = append(c.Occurrences, Occurrence{
                 DhlabId: id,
-                Index: i,
+                Index: word.Index,
                 Form: word.Form,
                 Lemma: word.Lemma,
                 LangId: word.Lang,
