@@ -46,8 +46,8 @@ func prepareForTagging(conc *dhlab.Concordance, p string) error {
 // Function tagFiles runs the tagger, an external Python program.
 // During normal operation, stdout from the tagger shows where each tagged file
 // was written to while stderr is empty.
-func tagFiles(p string) error {
-    cmd := exec.Command("python", "./tagger.py", p, p)
+func tagFiles(src string, p string) error {
+    cmd := exec.Command("python", filepath.Join(src, "tagger.py"), p, p)
     stdout, err := cmd.StdoutPipe()
     if err != nil {
         return errors.New(fmt.Sprintf("error in cmd.StdoutPipe(): %v\n", err))
@@ -101,7 +101,7 @@ func (*Tag) Run(a *config.Args, _ *config.Conf) error {
         return errors.New(fmt.Sprintf("error in prepareForTagging(): %v\n", err))
     }
 
-    err = tagFiles(p)
+    err = tagFiles(a.Src, p)
     if err != nil {
         return errors.New(fmt.Sprintf("error in tagFiles(): %v\n", err))
     }

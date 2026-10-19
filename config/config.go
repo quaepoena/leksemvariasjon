@@ -13,7 +13,7 @@ import (
 
 // Struct Args holds command line arguments and saves/reads them to/from disk.
 type Args struct {
-    ConfigFile, Directory, Doctype string
+    ConfigFile, Directory, Doctype, Src string
     ConcLimit, CorpLimit, From, To int
 }
 

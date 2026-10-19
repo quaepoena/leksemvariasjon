@@ -30,6 +30,7 @@ var (
 	doctype    string
 	from       int
 	resume     bool
+	src        string
 	to         int
 )
 
@@ -41,6 +42,7 @@ func init() {
 	flag.StringVar(&doctype, "doctype", "", "The doctype to search for.")
 	flag.BoolVar(&resume, "resume", false, "Resume a previously started job.")
 	flag.IntVar(&from, "from", 0, "The start year for the search.")
+	flag.StringVar(&src, "src", "", "The source directory for leksemvariasjon.")
 	flag.IntVar(&to, "to", 0, "The end year for the search (inclusive).")
 }
 
@@ -109,6 +111,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	if src == "" {
+		fmt.Fprintln(os.Stderr, "Flag -src must be set.")
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	if from > to {
 		fmt.Fprintln(os.Stderr, "Flag '-to' must be greater than or equal to '-from'.")
 		flag.Usage()
@@ -167,6 +175,7 @@ func main() {
 		args.Directory = directory
 		args.Doctype = doctype
 		args.From = from
+		args.Src = src
 		args.To = to
 		err = config.Marshal(filepath.Join(directory, "args.json"), args)
 		if err != nil {
