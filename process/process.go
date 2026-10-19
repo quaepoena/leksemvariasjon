@@ -156,9 +156,9 @@ func dhlabID(s string) (int, error) {
 }
 
 // Function matchingWords checks a tagged word against the criteria given in the
-// config file. If everything matches then the word is appended to fil, a list
-// of matching entries.
-func matchingWords(entry *TaggedEntry, c *config.Conf, dhlabId int, fil *Filter) error {
+// config file. If everything matches then the word is appended to Filter.Words,
+// a list of matching entries.
+func matchingWords(entry *TaggedEntry, c *config.Conf, dhlabId int, f *Filter) error {
     for _, lemma := range c.Lemmas {
         for _, word := range lemma.Words {
             for _, taggedWord := range entry.TaggedWords {
