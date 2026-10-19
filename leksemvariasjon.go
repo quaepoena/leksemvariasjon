@@ -99,7 +99,7 @@ func main() {
 	flag.Parse()
 
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "\n%s usage:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "\n%s usage:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 
