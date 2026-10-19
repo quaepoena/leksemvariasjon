@@ -134,8 +134,8 @@ afterward.
   if there is only one feature to be matched against, it must be specified in a
   list of strings, as shown above, and not as a simple string.
 
-As an additional example, to search for occurrences of palatalization in
-Nynorsk, one could use the following configuration file:
+As an additional example, to search for occurrences of palatalization of verbs
+in Nynorsk, one could use the following configuration file:
 
 ```json
 {
