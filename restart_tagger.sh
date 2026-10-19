@@ -46,13 +46,14 @@ function tagger_restart::run_tagger() {
 
 function tagger_restart::run_leksemvariasjon() {
     local run_dir="$1"
+    local src_dir="$2"
 
     if ! which leksemvariasjon &>/dev/null; then
         echo "leksemvariasjon not found in \$PATH. Run manually." >&2
         return 1
     fi
 
-    leksemvariasjon -resume -directory "${run_dir}"
+    leksemvariasjon -resume -directory "${run_dir}" -src "${src_dir}"
 
     if [[ "$?" -ne 0 ]]; then
         echo "leksemvariasjon failed." >&2
@@ -83,7 +84,7 @@ function tagger_restart::main() {
         exit 1
     fi
 
-    tagger_restart::run_leksemvariasjon "${run_dir}"
+    tagger_restart::run_leksemvariasjon "${run_dir}" "${src_dir}"
     if [[ "$?" -ne 0 ]]; then
         echo "leksemvariasjon didn't run properly." >&2
         echo "Exiting." >&2
