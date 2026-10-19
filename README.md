@@ -201,5 +201,31 @@ being tagged, simply redirect stdout:
 
 ### Troubleshooting
 
-A helper program (in the works) will be written to enable easy look-up
-interesting/suspicious concordance lines.
+A `lookup` utility (written in Go) exists under `lookup/` to allow for easy
+lookup of result lines. Each result needs to be specified as a string with a
+DHLab ID and index number separated by a comma, e.g.: `300189956,0`. This
+information exists in `results.csv`. If an input file (`-i`) isn't specified,
+the input is looked for first on the command line, then from stdin. If a tagged
+directory (`-t`) isn't specified, then `tagged` is the assumed default.
+
+The expected comma-separated input format is meant to allow the user to process
+`results.csv` as little as possible. An example invocation is given below:
+
+```bash
+$ grep 300189956 results.csv | cut -d ',' -f 1,2 | lookup
+300189956 0: hvis du ønsker …
+300189956 1: punktroman , der …
+300189956 3: Boka Tove kvinnene …
+300189956 4: Seiv om man …
+300189956 5: mellom samboende følger …
+```
+
+Here the user will see all the filtered results from DHLab ID 300189956. Note
+that this is meant to show results that made it through filtering, and we can
+see that index 2 isn't included. If one wishes to see results that didn't make
+it through, `results.csv` can be compared with the entries in `tagged/`.
+
+```bash
+$ cat tagged/300189956-2{,.tagged}
+…
+```
