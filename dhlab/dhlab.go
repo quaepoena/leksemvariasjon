@@ -255,7 +255,7 @@ func concordance(concResp *ConcordanceResponse, conc *Concordance) error {
 func (c *Concordance) Run(a *config.Args, conf *config.Conf) error {
 	var ids []int
 	resp := &ConcordanceResponse{}
-	req = &ConcordanceRequest{}
+	req := make([]byte, 0)
 	corp := &Corpus{}
 	var err error
 
