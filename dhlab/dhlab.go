@@ -178,22 +178,13 @@ type Concordance struct {
 	Lines map[int][]string
 }
 
-// Function dhlabIDs returns a list of IDs from a Corpus object previously saved
-// to disk as JSON.
-func dhlabIDs(a *config.Args) ([]int, error) {
-    var ids []int
-    corp := &Corpus{}
+// Function DhlabIDs returns a list of dhlab IDs from a Corpus object.
+func DhlabIDs(c *Corpus) (ids []int) {
+	for i := range c.DHLabID {
+		ids = append(ids, i)
+	}
 
-    err := config.Unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
-    if err != nil {
-        return nil, errors.New(fmt.Sprintf("error in config.Unmarshal(): %v\n", err))
-    }
-
-    for i := range corp.DHLabID {
-        ids = append(ids, i)
-    }
-
-    return ids, nil
+	return
 }
 
 // Function concordanceRequest creates the JSON object needed from the conc API
@@ -262,20 +253,31 @@ func concordance(concResp *ConcordanceResponse, conc *Concordance) error {
 // Run uses a list of previously fetched DHLab IDs to get concordance lines and
 // writh the results to disk as JSON.
 func (c *Concordance) Run(a *config.Args, conf *config.Conf) error {
+	var ids []int
+	resp := &ConcordanceResponse{}
+	req = &ConcordanceRequest{}
+	corp := &Corpus{}
+	var err error
+
+	err = config.Unmarshal(filepath.Join(a.Directory, "corpus.json"), corp)
+	if err != nil {
+		return errors.New(fmt.Sprintf("error in config.Unmarshal(): %v\n", err))
+	}
+
+	ids = DhlabIDs(corp)
+	if err != nil {
+		return errors.New(fmt.Sprintf("error in dhlabIDs(): %v\n", err))
+	}
 	if ids == nil {
 		return errors.New(fmt.Sprintf("no dhlabIDs were found in %s",
 			filepath.Join(a.Directory, "corpus.json")))
 	}
 
-	req, err := concordanceRequest(a, conf, ids)
+	req, err = concordanceRequest(a, conf, ids)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error in concordanceRequest(): %v\n", err))
 	}
 
-    ids, err := dhlabIDs(a)
-    if err != nil {
-        return errors.New(fmt.Sprintf("error in dhlabIDs(): %v\n", err))
-    }
 	err = concordanceResponse(req, resp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error in concordanceResponse(): %v\n", err))
