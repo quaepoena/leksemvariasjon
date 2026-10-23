@@ -60,11 +60,7 @@ func corpusRequest(a *config.Args, c *config.Conf) ([]byte, error) {
 	var words []string
 	var b []byte
 
-	for _, lemma := range c.Lemmas {
-		for _, word := range lemma.Words {
-			words = append(words, word.Form)
-		}
-	}
+	words = config.Words(c)
 
 	if a.Doctype != "" {
 		req.Doctype = a.Doctype
@@ -194,11 +190,7 @@ func concordanceRequest(a *config.Args, c *config.Conf, ids []int) ([]byte, erro
 	var words []string
 	var b []byte
 
-	for _, lemma := range c.Lemmas {
-		for _, word := range lemma.Words {
-			words = append(words, word.Form)
-		}
-	}
+	words = config.Words(c)
 
 	req.DHLabIDs = ids
 	req.HTMLFormatting = false

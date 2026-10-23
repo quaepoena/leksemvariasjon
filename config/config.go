@@ -43,6 +43,16 @@ type WorkflowStage interface {
 	Finished(*Args) bool
 }
 
+func Words(c *Conf) (words []string) {
+	for _, lemma := range c.Lemmas {
+		for _, word := range lemma.Words {
+			words = append(words, word.Form)
+		}
+	}
+
+	return
+}
+
 func FileExists(s string) bool {
 	f, err := os.Open(s)
 	if err != nil {
