@@ -257,9 +257,6 @@ func (c *Concordance) Run(a *config.Args, conf *config.Conf) error {
 	}
 
 	ids = DhlabIDs(corp)
-	if err != nil {
-		return errors.New(fmt.Sprintf("error in dhlabIDs(): %v\n", err))
-	}
 	if ids == nil {
 		return errors.New(fmt.Sprintf("no dhlabIDs were found in %s",
 			filepath.Join(a.Directory, "corpus.json")))
