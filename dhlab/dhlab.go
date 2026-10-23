@@ -53,9 +53,9 @@ type CorpusResponse struct {
 	Year    map[string]int
 }
 
-// Function corpusRequest builds and returns the JSON object used in the DHLab
+// Function CorpRequest builds and returns the JSON object used in the DHLab
 // build_corpus call.
-func corpusRequest(a *config.Args, c *config.Conf) ([]byte, error) {
+func CorpRequest(a *config.Args, c *config.Conf) ([]byte, error) {
 	var req CorpusRequest
 	var words []string
 	var b []byte
@@ -79,9 +79,9 @@ func corpusRequest(a *config.Args, c *config.Conf) ([]byte, error) {
 	return b, nil
 }
 
-// Function corpusResponse calls the build_corpus endpoint with req and
+// Function CorpResponse calls the build_corpus endpoint with req and
 // populates c with the response.
-func corpusResponse(req []byte, c *CorpusResponse) error {
+func CorpResponse(req []byte, c *CorpusResponse) error {
 	var uri = DHLabAPI + "build_corpus"
 
 	resp, err := http.Post(uri, "application/json", bytes.NewReader(req))
@@ -124,14 +124,14 @@ func (c *Corpus) Run(a *config.Args, conf *config.Conf) error {
 	var req []byte
 	resp := &CorpusResponse{}
 
-	req, err := corpusRequest(a, conf)
+	req, err := CorpRequest(a, conf)
 	if err != nil {
-		return errors.New(fmt.Sprintf("error in corpusRequest(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in CorpRequest(): %v\n", err))
 	}
 
-	err = corpusResponse(req, resp)
+	err = CorpResponse(req, resp)
 	if err != nil {
-		return errors.New(fmt.Sprintf("error in corpusResponse(): %v\n", err))
+		return errors.New(fmt.Sprintf("error in CorpResponse(): %v\n", err))
 	}
 
 	err = corpus(resp, c)

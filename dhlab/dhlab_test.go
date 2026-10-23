@@ -1,9 +1,96 @@
 package dhlab
 
 import (
+	"fmt"
 	"slices"
 	"testing"
+
+	"github.com/quaepoena/leksemvariasjon/config"
 )
+
+func TestCorpRequest(t *testing.T) {
+	// få dette frå dhlab swagger
+
+	a := config.Args{
+		ConfigFile: "/dev/null",
+		Directory: "/path/to/dev/null",
+		Doctype: "digibok",
+		Src: "/path/to/src",
+		ConcLimit: 100,
+		ConfLimit: 500,
+		From: 1990,
+		To: 1995,
+	}
+
+	m1 := []string{"verb", "inf"}
+	m2 := []string{"verb", "inf"}
+	m3 := []string{"verb", "pres"}
+	m4 := []string{"verb", "inf"}
+	m5 := []string{"verb", "inf"}
+	m6 := []string{"verb", "pres"}
+
+	f1 := "leggja"
+	f2 := "leggje"
+	f3 := "leggjer"
+	f4 := "legga"
+	f5 := "legge"
+	f6 := "legger"
+
+	v1 := "med"
+	v2 := "med"
+	v3 := "med"
+	v4 := "utan"
+	v5 := "utan"
+	v6 := "utan"
+
+	l1 := config.Lemma{Lemma: "leggje",
+		Words: []config.Word{
+			config.Word{Form: f1, Value: v1, Morphology: m1},
+			config.Word{Form: f2, Value: v2, Morphology: m2},
+			config.Word{Form: f3, Value: v3, Morphology: m3},
+		},
+	}
+	l2 := config.Lemma{Lemma: "legge",
+		Words: []Word{
+			config.Word{Form: f4, Value: v4, Morphology: m4},
+			config.Word{Form: f5, Value: v5, Morphology: m5},
+			config.Word{Form: f6, Value: v6, Morphology: m6},
+		},
+	}
+
+	c := &config.Conf{
+		Attribute: "palatalisering",
+		Language:  "nno",
+		Lemmas:    []Lemma{l1, l2},
+	}
+
+	req, err := CorpRequest(a, c)
+	want := `
+"doctype": "digibok",
+"from_year": "1990",
+"to_year": "1995",
+"fulltext": "leggja OR leggje OR leggjer OR legga OR legge OR legger",
+"lang": "nno",
+"limit": "100"
+`
+
+	reqStr := fmt.Sprintf("%s", req)
+	if reqStr != want || err != nil {
+		t.Errorf("CorpRequest(): %v != %v\nerr: %v", req, want, err)
+	}
+}
+
+func TestCorpResponse(t *testing.T) {
+	// få dette frå dhlab swagger
+}
+
+func TestConfRequest(t *testing.T) {
+	// få dette frå dhlab swagger
+}
+
+func TestConfResponse(t *testing.T) {
+	// få dette frå dhlab swagger
+}
 
 func TestDhlabIDs(t *testing.T) {
 	meta := make(map[int]CorpusMetadata)
