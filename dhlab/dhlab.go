@@ -103,9 +103,9 @@ func CorpResponse(req []byte, c *CorpusResponse) error {
 	return nil
 }
 
-// Function corpus populates a Corpus struct with the response from the
+// Function Corp populates a Corpus struct with the response from the
 // build_corpus API call.
-func corpus(resp *CorpusResponse, c *Corpus) error {
+func Corp(resp *CorpusResponse, c *Corpus) error {
 	c.DHLabID = make(map[int]CorpusMetadata)
 
 	for i, v := range resp.DHLabID {
@@ -134,7 +134,7 @@ func (c *Corpus) Run(a *config.Args, conf *config.Conf) error {
 		return errors.New(fmt.Sprintf("error in CorpResponse(): %v\n", err))
 	}
 
-	err = corpus(resp, c)
+	err = Corp(resp, c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error in corpus(): %v\n", err))
 	}

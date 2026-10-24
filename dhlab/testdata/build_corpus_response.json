@@ -1,0 +1,121 @@
+{
+    "dhlabid": {
+        "16": 10,
+        "26": 25,
+        "36": 40,
+        "46": 55,
+        "56": 70
+    },
+    "urn": {
+        "16": "URN:100",
+        "26": "URN:200",
+        "36": "URN:300",
+        "46": "URN:400",
+        "56": "URN:500"
+    },
+    "title": {
+        "16": "foo",
+        "26": "bar",
+        "36": "baz",
+        "46": "shoo",
+        "56": "shar"
+    },
+    "authors": {
+        "16": "T.S.",
+        "26": "F.S.",
+        "36": "Å.S.",
+        "46": "T.S.",
+        "56": "M.S."
+    },
+    "oaiid": {
+        "16": "oai:1001",
+        "26": "oai:1002",
+        "36": "oai:1003",
+        "46": "oai:1004",
+        "56": "oai:1005"
+    },
+    "sesamid": {
+        "16": "67339d",
+        "26": "855085",
+        "36": "27e72a",
+        "46": "fbef3f",
+        "56": "dc8ca1"
+    },
+    "isbn10": {
+        "16": "8201",
+        "26": "",
+        "36": "8203",
+        "46": "",
+        "56": ""
+    },
+    "city": {
+        "16": "[Bergen]",
+        "26": "Kirkenes",
+        "36": "Lillestrøm",
+        "46": "Oslo",
+        "56": "Blindern"
+    },
+    "timestamp": {
+        "16": 1234,
+        "26": 5678,
+        "36": 9012,
+        "46": 3456,
+        "56": 7890
+    },
+    "year": {
+        "16": 1991,
+        "26": 1993,
+        "36": 1994,
+        "46": 1995,
+        "56": 1992
+    },
+    "publisher": {
+        "16": "Universitetsforlages",
+        "26": "Aschehoug",
+        "36": "Bladkompaniet",
+        "46": "",
+        "56": "Yrkeslitteratur"
+    },
+    "langs": {
+        "16": "nob",
+        "26": "mul / nob / swe / eng",
+        "36": "nob / swe",
+        "46": "nob",
+        "56": "nob"
+    },
+    "subjects": {
+        "16": "pedagogikk",
+        "26": "naturfag",
+        "36": "hushold",
+        "46": "vannkraftanlegg",
+        "56": "7-9klasse"
+    },
+    "ddc": {
+        "16": "",
+        "26": "",
+        "36": "813",
+        "46": "839.73",
+        "56": ""
+    },
+    "genres": {
+        "16": "fiction",
+        "26": "",
+        "36": "",
+        "46": "fiction",
+        "56": ""
+    },
+    "literaryform": {
+        "16": "Uklassifisert",
+        "26": "Faglitteratur",
+        "36": "Skjønnlitteratur",
+        "46": "Skjønnlitteratur",
+        "56": "Uklassifisert"
+    },
+    "doctype": {
+        "16": "digibok",
+        "26": "digibok",
+        "36": "digibok",
+        "46": "digibok",
+        "56": "digibok"
+    }
+}

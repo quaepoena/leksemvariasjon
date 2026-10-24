@@ -205,3 +205,61 @@ func TestDhlabIDsEmptyCorp(t *testing.T) {
 		t.Errorf("DHLabIDs(): %v != %v", ids, want)
 	}
 }
+
+func TestCorp(t *testing.T) {
+	corpResp := &CorpusResponse{}
+	c := &Corpus{}
+
+	err := config.Unmarshal("testdata/build_corpus_response.json", corpResp)
+	if err != nil {
+		t.Errorf("error in config.Marshal() with 'testdata/build_corpus_response.json': %v", err)
+	}
+
+	err = Corp(corpResp, c)
+	if err != nil {
+		t.Errorf("error in Corp() with %v: %v", corpResp, err)
+	}
+
+	d1 := CorpusMetadata{
+		Doctype: "digibok",
+		URN: "URN:100",
+		Year: 1991,
+		Lang: "nob",
+	}
+	d2 := CorpusMetadata{
+		Doctype: "digibok",
+		URN: "URN:200",
+		Year: 1993,
+		Lang: "mul / nob / swe / eng",
+	}
+	d3 := CorpusMetadata{
+		Doctype: "digibok",
+		URN: "URN:300",
+		Year: 1994,
+		Lang: "nob / swe",
+	}
+	d4 := CorpusMetadata{
+		Doctype: "digibok",
+		URN: "URN:400",
+		Year: 1995,
+		Lang: "nob",
+	}
+	d5 := CorpusMetadata{
+		Doctype: "digibok",
+		URN: "URN:500",
+		Year: 1992,
+		Lang: "nob",
+	}
+
+	want := &Corpus{}
+	want.DHLabID = make(map[int]CorpusMetadata)
+	want.DHLabID[10] = d1
+	want.DHLabID[25] = d2
+	want.DHLabID[40] = d3
+	want.DHLabID[55] = d4
+	want.DHLabID[70] = d5
+
+	if !cmp.Equal(c, want) {
+		t.Errorf("error in Corp(): %v != %v", c, want)
+	}
+}
