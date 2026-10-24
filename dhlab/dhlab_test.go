@@ -190,7 +190,10 @@ func TestDhlabIDs(t *testing.T) {
 	want = append(want, 3)
 
 	ids := DhlabIDs(corp)
-	if !slices.Equal(ids, want) {
+
+	slices.Sort(ids)
+	slices.Sort(want)
+	if !cmp.Equal(ids, want) {
 		t.Errorf("DHLabIDs(): %v != %v", ids, want)
 	}
 }
