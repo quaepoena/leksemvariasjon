@@ -50,13 +50,10 @@ func TestWords(t *testing.T) {
 
 	words := Words(c)
 
-	want := make([]string, 0)
-	want = append(want, "leggja")
-	want = append(want, "leggje")
-	want = append(want, "leggjer")
-	want = append(want, "legga")
-	want = append(want, "legge")
-	want = append(want, "legger")
+	want := []string{
+		"leggja", "leggje", "leggjer",
+		"legga", "legge", "legger",
+	}
 
 	if !slices.Equal(words, want) {
 		t.Errorf("Equal(): %v != %v", words, want)
