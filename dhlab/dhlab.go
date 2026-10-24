@@ -103,8 +103,8 @@ func CorpResponse(req []byte, c *CorpusResponse) error {
 	return nil
 }
 
-// Function corpus populates a Corpus struct with data from the build_corpus
-// API call.
+// Function corpus populates a Corpus struct with the response from the
+// build_corpus API call.
 func corpus(resp *CorpusResponse, c *Corpus) error {
 	c.DHLabID = make(map[int]CorpusMetadata)
 
