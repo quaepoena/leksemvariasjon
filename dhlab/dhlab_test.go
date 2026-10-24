@@ -1,25 +1,25 @@
 package dhlab
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
 	"slices"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/quaepoena/leksemvariasjon/config"
 )
 
 func TestCorpRequest(t *testing.T) {
-	// få dette frå dhlab swagger
-
 	a := config.Args{
 		ConfigFile: "/dev/null",
-		Directory: "/path/to/dev/null",
-		Doctype: "digibok",
-		Src: "/path/to/src",
-		ConcLimit: 100,
-		ConfLimit: 500,
-		From: 1990,
-		To: 1995,
+		Directory:  "/path/to/dev/null",
+		Doctype:    "digibok",
+		Src:        "/path/to/src",
+		CorpLimit:  100,
+		ConcLimit:  500,
+		From:       1990,
+		To:         1995,
 	}
 
 	m1 := []string{"verb", "inf"}
@@ -51,7 +51,7 @@ func TestCorpRequest(t *testing.T) {
 		},
 	}
 	l2 := config.Lemma{Lemma: "legge",
-		Words: []Word{
+		Words: []config.Word{
 			config.Word{Form: f4, Value: v4, Morphology: m4},
 			config.Word{Form: f5, Value: v5, Morphology: m5},
 			config.Word{Form: f6, Value: v6, Morphology: m6},
@@ -61,22 +61,31 @@ func TestCorpRequest(t *testing.T) {
 	c := &config.Conf{
 		Attribute: "palatalisering",
 		Language:  "nno",
-		Lemmas:    []Lemma{l1, l2},
+		Lemmas:    []config.Lemma{l1, l2},
 	}
 
-	req, err := CorpRequest(a, c)
-	want := `
+	wantByte := []byte(`{
 "doctype": "digibok",
-"from_year": "1990",
-"to_year": "1995",
+"from_year": 1990,
+"to_year": 1996,
 "fulltext": "leggja OR leggje OR leggjer OR legga OR legge OR legger",
 "lang": "nno",
-"limit": "100"
-`
+"limit": 100
+}`)
 
-	reqStr := fmt.Sprintf("%s", req)
-	if reqStr != want || err != nil {
+	want := &bytes.Buffer{}
+	err := json.Compact(want, wantByte)
+	if err != nil {
+		t.Errorf("json.Compact() failed on wantByte: %v", wantByte)
+	}
+
+	req, err := CorpRequest(&a, c)
+	if !slices.Equal(req, want.Bytes()) {
 		t.Errorf("CorpRequest(): %v != %v\nerr: %v", req, want, err)
+	}
+
+	if err != nil {
+		t.Errorf("err in CorpRequest():\nerr: %v\nreq: %v\nwant: %v", err, req, want)
 	}
 }
 
