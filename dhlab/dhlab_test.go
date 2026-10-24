@@ -167,14 +167,6 @@ func TestCorpRequestEmptyDoctype(t *testing.T) {
 	}
 }
 
-func TestConfRequest(t *testing.T) {
-	// få dette frå dhlab swagger
-}
-
-func TestConfResponse(t *testing.T) {
-	// få dette frå dhlab swagger
-}
-
 func TestDhlabIDs(t *testing.T) {
 	meta := make(map[int]CorpusMetadata)
 	meta[0] = CorpusMetadata{Doctype: "digibok", Lang: "nob", URN: "urn0", Year: 1990}
