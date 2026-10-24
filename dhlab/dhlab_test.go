@@ -183,11 +183,7 @@ func TestDhlabIDs(t *testing.T) {
 	meta[3] = CorpusMetadata{Doctype: "digibok", Lang: "nob", URN: "urn3", Year: 1993}
 	corp := &Corpus{DHLabID: meta}
 
-	want := make([]int, 0)
-	want = append(want, 0)
-	want = append(want, 1)
-	want = append(want, 2)
-	want = append(want, 3)
+	want := []int{0, 1, 2, 3}
 
 	ids := DhlabIDs(corp)
 
