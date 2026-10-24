@@ -145,6 +145,27 @@ func main() {
 			flag.Usage()
 			os.Exit(1)
 		}
+
+		saved, err := filepath.Abs(args.Directory)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error in filepath.Abs() with %s: %v", saved, err)
+			flag.Usage()
+			os.Exit(1)
+		}
+		new, err := filepath.Abs(args.Directory)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error in filepath.Abs() with %s: %v", new, err)
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if saved != new {
+			fmt.Fprintf(os.Stderr, "the directory saved in args.json, '%s', doesn't match that given in the flag '-directory', '%s'",
+				saved, new)
+			flag.Usage()
+			os.Exit(1)
+		}
+
 	} else {
 		// For non-resumptive runs we need to 1) create a unique directory,
 		// 2) copy the arguments and JSON config file thither, and 3) set
